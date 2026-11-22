@@ -1,0 +1,13 @@
+{
+  "name": "Pakistani Fashion",
+  "slug": "pakistani-fashion",
+  "description": "Your choice of brand, on pre-order.",
+  "photo": "",
+  "photoUrl": "/brand/editorial/fashion-window.jpg",
+  "categories": [
+    "fashion-clothing"
+  ],
+  "featured": true,
+  "order": 2,
+  "visible": true
+}
