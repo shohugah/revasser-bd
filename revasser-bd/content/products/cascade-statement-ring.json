@@ -1,0 +1,33 @@
+{
+  "name": "Cascade Statement Ring",
+  "category": "jewellery-accessories",
+  "photo": "",
+  "photoUrl": "/brand/products/cascade-silver.jpg",
+  "morePhotos": [],
+  "morePhotoUrls": [
+    "/brand/products/cascade-gold.jpg"
+  ],
+  "price": null,
+  "salePrice": null,
+  "availability": "Confirm on WhatsApp",
+  "description": "Rows of small clear stones fall into a pointed, finger-length shape. Shown in silver tone and gold tone.",
+  "details": [
+    "Ask us about material, sizing and care before you order."
+  ],
+  "colours": [
+    {
+      "name": "Silver tone",
+      "photoUrl": "/brand/products/cascade-silver.jpg"
+    },
+    {
+      "name": "Gold tone",
+      "photoUrl": "/brand/products/cascade-gold.jpg"
+    }
+  ],
+  "sizes": [],
+  "isNew": false,
+  "bestSeller": false,
+  "reviews": [],
+  "order": 8,
+  "visible": true
+}
