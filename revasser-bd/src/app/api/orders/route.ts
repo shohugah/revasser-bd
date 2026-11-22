@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { wcFetch } from "@/lib/woocommerce";
+import { toWhatsAppNumber } from "@/lib/whatsapp";
+import checkout from "../../../../content/checkout.json";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,7 +16,6 @@ export async function POST(req: NextRequest) {
       notes,
       paymentMethod,
       trxId,
-      deliveryFee,
       items,
     } = body;
 
@@ -24,6 +25,19 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const validItems =
+      Array.isArray(items) &&
+      items.length <= 50 &&
+      items.every(
+        (i) => Number.isSafeInteger(Number(i?.id)) && Number(i.id) > 0 && Number.isInteger(i.quantity) && i.quantity > 0 && i.quantity <= 20
+      );
+    if (!validItems || !toWhatsAppNumber(String(phone)) || !checkout.districts.includes(district)) {
+      return NextResponse.json({ error: "Please check the items, mobile number and district." }, { status: 400 });
+    }
+    // The fee comes from the store's settings, never from the browser.
+    const inside = district === checkout.insideDistrict;
+    const deliveryFee = inside ? checkout.insideFee : checkout.outsideFee;
 
     const paymentTitles: Record<string, string> = {
       cod: "Cash on Delivery (Bangladesh)",
@@ -40,7 +54,7 @@ export async function POST(req: NextRequest) {
       billing: {
         first_name: customerName,
         phone,
-        email: email || "guest@revasserbd.com",
+        ...(email && { email }),
         city: district,
         state: area || district,
         address_1: `${area ? area + ", " : ""}${address}`,
@@ -60,7 +74,7 @@ export async function POST(req: NextRequest) {
       shipping_lines: [
         {
           method_id: "flat_rate",
-          method_title: district === "Dhaka" ? "Inside Dhaka Delivery" : "Outside Dhaka Delivery",
+          method_title: inside ? `${checkout.insideLabel} Delivery` : `${checkout.outsideLabel} Delivery`,
           total: String(deliveryFee),
         },
       ],
@@ -84,7 +98,8 @@ export async function POST(req: NextRequest) {
       status: createdOrder.status,
       total: createdOrder.total,
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Could not create the order." }, { status: 500 });
   }
 }
