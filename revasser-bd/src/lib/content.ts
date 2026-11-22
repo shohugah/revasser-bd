@@ -27,6 +27,17 @@ const texts = <K extends string>(o: Raw, keys: readonly K[]) =>
 // Editable links must never be able to run script.
 const link = (v: unknown) => (/^(https?:\/\/|\/|#|tel:|mailto:)/i.test(str(v).trim()) ? str(v).trim() : "#catalog");
 
+// Optional web address: accepts "facebook.com/page" as well as a full link, and nothing that can run script.
+const webLink = (v: unknown) => {
+  const s = str(v).trim();
+  if (/^https?:\/\/\S+$/i.test(s)) return s;
+  return /^(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+\/\S*$/i.test(s) ? `https://${s}` : "";
+};
+const email = (v: unknown) => {
+  const s = str(v).trim();
+  return /^[^\s@?&:/]+@[^\s@?&:/]+\.[^\s@?&:/]+$/.test(s) ? s : "";
+};
+
 export interface Product {
   id: string;
   name: string;
@@ -135,6 +146,13 @@ export function getContent() {
     footer: {
       ...texts(f, ["about", "careTitle", "trackLink", "paymentsTitle", "paymentsText"] as const),
       careLines: list(f.careLines).map(str),
+      supportLabel: str(f.supportLabel) || "Help & Support",
+      supportEmail: email(f.supportEmail),
+      socials: [
+        { name: "Facebook", url: webLink(f.facebook) },
+        { name: "Instagram", url: webLink(f.instagram) },
+        { name: "TikTok", url: webLink(f.tiktok) },
+      ].filter((s) => s.url),
     },
     checkout: {
       ...texts(c, [
