@@ -1,0 +1,25 @@
+{
+  "title": "Privacy",
+  "slug": "privacy",
+  "intro": "What this website does with your information, in plain words.",
+  "sections": [
+    {
+      "title": "On your device",
+      "text": "Your bag, wishlist, recently viewed pieces, saved details and order drafts are stored in your own browser. You can clear them at any time from My Revasser."
+    },
+    {
+      "title": "When you order",
+      "text": "The details you type are placed in a WhatsApp message that you choose to send. We use them to confirm and deliver your order. WhatsApp handles that message under its own privacy terms."
+    },
+    {
+      "title": "Website hosting",
+      "text": "Our hosting provider processes standard technical information, such as IP addresses, to deliver and protect the site."
+    },
+    {
+      "title": "Your choices",
+      "text": "Email {email} to ask what order information we hold, or to have it corrected or deleted."
+    }
+  ],
+  "order": 4,
+  "visible": true
+}

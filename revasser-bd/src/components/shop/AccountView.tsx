@@ -1,0 +1,71 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useStore } from "../StoreProvider";
+
+export function AccountView() {
+  const { ready, orders, details, forget, wishlist, count, open } = useStore();
+  const [confirming, setConfirming] = useState(false);
+  if (!ready) return <p role="status" className="py-20 text-muted">Loading…</p>;
+  return (
+    <div className="grid gap-14 lg:grid-cols-[1.5fr_1fr] lg:gap-24">
+      <section>
+        <h2 className="display-md">Order history</h2>
+        <p className="mt-3 text-sm text-muted">Orders started in this browser. Our WhatsApp reply is your confirmation.</p>
+        {orders.length === 0 ? (
+          <div className="mt-8 border-t border-ink/10 pt-8">
+            <p>No orders started on this device yet.</p>
+            <Link href="/shop" className="btn-dark mt-6">Start with the edit</Link>
+          </div>
+        ) : (
+          <ul className="mt-8 divide-y divide-ink/10 border-y border-ink/10">
+            {orders.map((o) => (
+              <li key={o.reference} className="py-6">
+                <p className="flex flex-wrap justify-between gap-2">
+                  <span className="tracking-[0.1em]">{o.reference}</span>
+                  <span className="text-sm text-muted">{new Date(o.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                </p>
+                <p className="mt-2 text-sm text-muted">{o.items.map((i) => `${i.quantity} × ${i.name}${i.option ? ` (${i.option})` : ""}`).join(", ")}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-x-5 text-sm">
+                  <span>{o.sent ? "You marked this as sent" : "Not marked as sent"}</span>
+                  <Link href={`/track-order?ref=${encodeURIComponent(o.reference)}`} className="flex min-h-11 items-center underline underline-offset-4">Ask for an update</Link>
+                  {!o.sent && <a href={o.url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center underline underline-offset-4">Open message again</a>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <aside className="space-y-10">
+        <section>
+          <h2 className="text-2xl">Saved pieces</h2>
+          <p className="mt-3 text-sm text-muted">{wishlist.length} in your wishlist, {count} in your bag.</p>
+          <div className="mt-2 flex gap-6">
+            <Link href="/wishlist" className="link-line"><span>Wishlist</span></Link>
+            <button onClick={() => open("bag")} className="link-line"><span>Bag</span></button>
+          </div>
+        </section>
+        <section>
+          <h2 className="text-2xl">Delivery details</h2>
+          <p className="mt-3 text-sm text-muted">
+            {details
+              ? [details.customerName, details.phone, details.address, details.area, details.district].filter(Boolean).join(", ")
+              : "Tick “Remember these details” at checkout to keep them here."}
+          </p>
+        </section>
+        <section className="border-t border-ink/10 pt-6">
+          <p className="text-sm text-muted">There is no password and no online account. Everything on this page stays in this browser and does not follow you to another device.</p>
+          {confirming ? (
+            <div className="mt-4 flex gap-2">
+              <button className="btn-dark" onClick={() => { forget(); setConfirming(false); }}>Clear everything</button>
+              <button className="btn-line" onClick={() => setConfirming(false)}>Keep</button>
+            </div>
+          ) : (
+            <button className="mt-2 min-h-11 text-sm underline underline-offset-4" onClick={() => setConfirming(true)}>Clear this device</button>
+          )}
+        </section>
+      </aside>
+    </div>
+  );
+}

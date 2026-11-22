@@ -1,7 +1,23 @@
 {
   "sections": [
     {
-      "section": "Banner",
+      "section": "Hero",
+      "show": true
+    },
+    {
+      "section": "Collections",
+      "show": true
+    },
+    {
+      "section": "New in",
+      "show": true
+    },
+    {
+      "section": "Campaign",
+      "show": true
+    },
+    {
+      "section": "Pre-order",
       "show": true
     },
     {
@@ -9,7 +25,7 @@
       "show": true
     },
     {
-      "section": "Products",
+      "section": "Best sellers",
       "show": true
     },
     {
@@ -17,7 +33,23 @@
       "show": true
     },
     {
+      "section": "Story",
+      "show": true
+    },
+    {
+      "section": "Reviews",
+      "show": true
+    },
+    {
+      "section": "Social",
+      "show": true
+    },
+    {
       "section": "Benefits",
+      "show": true
+    },
+    {
+      "section": "Join",
       "show": true
     }
   ]

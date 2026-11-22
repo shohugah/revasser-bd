@@ -1,0 +1,25 @@
+{
+  "line1": "I came.",
+  "line2": "I saw.",
+  "line3": "I shopped.",
+  "text": "Three small sentences, one very good afternoon. The pieces you notice first are usually the ones you keep.",
+  "button": "Shop jewellery",
+  "link": "/shop/jewellery-accessories",
+  "photos": [
+    {
+      "photo": "",
+      "photoUrl": "/brand/editorial/fashion-coat-motion.jpg",
+      "description": "Woman walking in a long camel coat"
+    },
+    {
+      "photo": "",
+      "photoUrl": "/brand/social/on-the-hand.jpg",
+      "description": "A Revasser flower ring worn on the hand"
+    },
+    {
+      "photo": "",
+      "photoUrl": "/brand/editorial/campaign-golden-profile.jpg",
+      "description": "Woman in gold light holding dried flowers"
+    }
+  ]
+}

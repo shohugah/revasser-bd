@@ -1,23 +1,27 @@
 import type { Config } from "tailwindcss";
 
+const colour = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
+
 const config: Config = {
-  content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./src/components/**/*.{ts,tsx}", "./src/app/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        accent: "rgb(var(--accent) / <alpha-value>)",
-        "accent-hover": "rgb(var(--accent-hover) / <alpha-value>)",
-        ink: "rgb(var(--ink) / <alpha-value>)",
-        page: "rgb(var(--page) / <alpha-value>)",
+        accent: colour("accent"),
+        "accent-hover": colour("accent-hover"),
+        ink: colour("ink"),
+        page: colour("page"),
+        soft: colour("soft"),
+        campaign: colour("campaign"),
+        // Secondary text: 5.9:1 on ivory, 4.9:1 on beige.
+        muted: "#5F5A53",
       },
       fontFamily: {
-        serif: ["var(--font-heading)", "Georgia", "serif"],
-        sans: ["var(--font-body)", "system-ui", "sans-serif"],
+        serif: ["var(--font-heading)", "Didot", "Georgia", "serif"],
+        sans: ["var(--font-body)", "Futura", "system-ui", "sans-serif"],
       },
+      screens: { "3xl": "1800px" },
+      transitionTimingFunction: { silk: "cubic-bezier(.22,.8,.24,1)" },
     },
   },
   plugins: [],

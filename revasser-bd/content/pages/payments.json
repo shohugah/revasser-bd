@@ -1,0 +1,21 @@
+{
+  "title": "Payments",
+  "slug": "payments",
+  "intro": "Simple, and confirmed by a person.",
+  "sections": [
+    {
+      "title": "Available now",
+      "text": "{payments}."
+    },
+    {
+      "title": "How ordering works",
+      "text": "Checkout writes your order into a WhatsApp message. It reaches us only when you press Send, and it is confirmed only when we reply with availability and the final total."
+    },
+    {
+      "title": "Stay safe",
+      "text": "Never send money on the strength of a message from an account that is not linked from this website."
+    }
+  ],
+  "order": 3,
+  "visible": true
+}

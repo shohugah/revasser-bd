@@ -21,7 +21,8 @@ export async function GET() {
       }));
 
     return NextResponse.json({ categories });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Could not load categories." }, { status: 500 });
   }
 }

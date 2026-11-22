@@ -2,8 +2,10 @@
   "name": "Beauty & Personal Care",
   "slug": "beauty-personal-care",
   "image": "",
-  "imageUrl": "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=80",
+  "imageUrl": "/brand/editorial/campaign-golden-profile.jpg",
   "countLabel": "",
   "order": 6,
-  "visible": true
+  "visible": true,
+  "description": "Small rituals.",
+  "featured": false
 }

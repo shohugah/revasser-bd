@@ -1,0 +1,26 @@
+{
+  "eyebrow": "The pre-order service",
+  "title": "From Pakistan’s ateliers to your door.",
+  "text": "Original Pakistani dresses, brought to Bangladesh by request. You choose the brand and the piece. We bring it to you.",
+  "button": "How pre-order works",
+  "photo": "",
+  "photoUrl": "/brand/editorial/preorder-olive-suit.jpg",
+  "secondPhoto": "",
+  "secondPhotoUrl": "/brand/editorial/preorder-shawl.jpg",
+  "imageNote": "Editorial images, not items for sale",
+  "steps": [
+    {
+      "title": "Choose",
+      "text": "Find the dress you love from the Pakistani brand of your choice, then send us a link or screenshot with your size."
+    },
+    {
+      "title": "Confirm",
+      "text": "We reply on WhatsApp with the price, expected timing and payment terms before anything is ordered."
+    },
+    {
+      "title": "Receive",
+      "text": "Once you have agreed, we order the piece and arrange delivery to you in Bangladesh."
+    }
+  ],
+  "whatsappText": "Hello Revasser, I would like to pre-order a Pakistani dress. Brand / link: "
+}

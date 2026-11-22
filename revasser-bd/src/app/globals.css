@@ -2,7 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: rgb(var(--page));
-  color: rgb(var(--ink));
+@layer base {
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 7.5rem; }
+  body { @apply bg-page font-sans text-ink antialiased; font-size: 1rem; line-height: 1.6; }
+  h1, h2, h3 { @apply font-serif font-normal; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  button, [role="button"], summary { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  summary::-webkit-details-marker { display: none; }
+  :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+  ::selection { background: rgb(var(--campaign)); color: rgb(var(--page)); }
+  html:has(dialog[open]) { overflow: hidden; }
+}
+
+@layer components {
+  .shell { @apply mx-auto w-full max-w-[1760px] px-5 sm:px-8 lg:px-12 3xl:px-16; }
+  .section { @apply py-20 lg:py-32; }
+  .label { @apply text-xs font-normal uppercase tracking-[0.2em]; }
+  .display-xl { @apply font-serif text-[clamp(3.5rem,8vw,8.75rem)] leading-[0.92] tracking-[-0.015em]; }
+  .display-lg { @apply font-serif text-[clamp(2.5rem,5.2vw,5.5rem)] leading-[1] tracking-[-0.01em]; }
+  .display-md { @apply font-serif text-[clamp(1.875rem,3.1vw,3.25rem)] leading-[1.08]; }
+
+  .btn { @apply inline-flex min-h-[3.25rem] items-center justify-center gap-3 border px-8 py-3 text-center text-xs uppercase tracking-[0.2em] transition-colors duration-500 ease-silk disabled:opacity-40; }
+  .btn-dark { @apply btn border-ink bg-ink text-page hover:bg-campaign hover:border-campaign; }
+  .btn-light { @apply btn border-page bg-page text-ink hover:bg-transparent hover:text-page; }
+  .btn-line { @apply btn border-ink/40 hover:border-ink hover:bg-ink hover:text-page; }
+  .btn-line-light { @apply btn border-page/40 text-page hover:border-page hover:bg-page hover:text-ink; }
+
+  .link-line { @apply inline-flex min-h-[2.75rem] items-center text-xs uppercase tracking-[0.2em]; }
+  .link-line > span { background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat; padding-bottom: .4rem; transition: background-size .5s cubic-bezier(.22,.8,.24,1); }
+  .link-line:hover > span { background-size: 55% 1px; }
+
+  .icon-btn { @apply relative inline-flex h-11 w-11 shrink-0 items-center justify-center transition-opacity hover:opacity-60; }
+  .field { @apply block w-full rounded-none border-0 border-b border-ink/40 bg-transparent px-0 py-3 text-base outline-none transition-colors placeholder:text-muted/80 focus:border-ink focus:shadow-[0_1px_0_0_rgb(var(--ink))]; }
+  .field[aria-invalid="true"] { @apply border-red-800; }
+  .count { @apply absolute right-0.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-campaign px-1 text-[10px] leading-none text-page; }
+}
+
+/* Panels: native dialogs give the focus trap, Esc and inert background for free. */
+dialog.panel { border: 0; padding: 0; margin: 0; max-width: none; max-height: none; color: inherit; background: rgb(var(--page)); position: fixed; overflow: hidden;
+  opacity: 0; transition: opacity .4s ease, transform .5s cubic-bezier(.22,.8,.24,1), overlay .5s allow-discrete, display .5s allow-discrete; }
+dialog.panel[open] { opacity: 1; transform: none; }
+dialog.panel::backdrop { background: rgb(23 23 23 / 0); transition: background .4s ease, overlay .4s allow-discrete, display .4s allow-discrete; }
+dialog.panel[open]::backdrop { background: rgb(23 23 23 / .48); }
+dialog.panel-right { inset: 0 0 0 auto; height: 100%; width: min(100%, 31rem); transform: translateX(2.5rem); }
+dialog.panel-left { inset: 0 auto 0 0; height: 100%; width: min(100%, 27rem); transform: translateX(-2.5rem); }
+dialog.panel-top { inset: 0 0 auto 0; width: 100%; max-height: 92dvh; transform: translateY(-1.5rem); }
+dialog.panel-center { inset: 0; margin: auto; width: min(94vw, 64rem); height: fit-content; max-height: 92dvh; transform: translateY(1rem); }
+@starting-style {
+  dialog.panel[open] { opacity: 0; }
+  dialog.panel-right[open] { transform: translateX(2.5rem); }
+  dialog.panel-left[open] { transform: translateX(-2.5rem); }
+  dialog.panel-top[open] { transform: translateY(-1.5rem); }
+  dialog.panel-center[open] { transform: translateY(1rem); }
+  dialog.panel[open]::backdrop { background: rgb(23 23 23 / 0); }
+}
+
+.mega { visibility: hidden; opacity: 0; transform: translateY(-.4rem); transition: opacity .35s ease, transform .45s cubic-bezier(.22,.8,.24,1), visibility 0s linear .35s; }
+.mega[data-open="true"] { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+
+.no-bar { scrollbar-width: none; }
+.no-bar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* A slow settle on the first image. Opacity stays at 1 so it never delays the largest paint. */
+  .hero-settle img { animation: settle 2.2s cubic-bezier(.22,.8,.24,1) both; }
+  /* Scroll reveals only where the browser can do them without JavaScript; elsewhere images simply show. */
+  @supports (animation-timeline: view()) {
+    .reveal { animation: reveal linear both; animation-timeline: view(); animation-range: entry 0% entry 55%; }
+  }
+  @supports (animation-timeline: view()) {
+    /* The monogram draws itself as it scrolls in. */
+    .arm-draw { stroke-dasharray: 1 1; animation: arm-draw linear both; animation-timeline: view(); animation-range: entry 0% entry 90%; }
+  }
+  .page-in { animation: page-in .55s cubic-bezier(.22,.8,.24,1); }
+  .toast { animation: toast .4s cubic-bezier(.22,.8,.24,1); }
+}
+@keyframes settle { from { scale: 1.06; } to { scale: 1; } }
+@keyframes reveal { from { clip-path: inset(7% 4% 0 4%); } to { clip-path: inset(0); } }
+@keyframes arm-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes page-in { from { translate: 0 6px; } to { translate: 0 0; } }
+@keyframes toast { from { opacity: 0; translate: 0 8px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after, dialog::backdrop { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }

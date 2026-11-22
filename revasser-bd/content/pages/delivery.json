@@ -1,0 +1,25 @@
+{
+  "title": "Delivery",
+  "slug": "delivery",
+  "intro": "We deliver across all 64 districts of Bangladesh.",
+  "sections": [
+    {
+      "title": "Delivery fees",
+      "text": "Inside Dhaka: ৳{insideFee}\nOutside Dhaka: ৳{outsideFee}\nYour fee is shown at checkout when you choose a district."
+    },
+    {
+      "title": "When will it arrive?",
+      "text": "We confirm availability and expected delivery timing on WhatsApp before dispatch."
+    },
+    {
+      "title": "Pre-orders",
+      "text": "Pre-ordered fashion travels from Pakistan and takes longer than an in-hand piece. We give you the expected timing before you commit."
+    },
+    {
+      "title": "Payment",
+      "text": "{payments}. For pre-orders, we confirm payment terms with you before ordering."
+    }
+  ],
+  "order": 1,
+  "visible": true
+}

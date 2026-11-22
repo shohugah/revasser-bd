@@ -1,0 +1,13 @@
+{
+  "name": "The Jewellery Edit",
+  "slug": "the-jewellery-edit",
+  "description": "Rings with a point of view.",
+  "photo": "",
+  "photoUrl": "/brand/editorial/jewellery-edit.jpg",
+  "categories": [
+    "jewellery-accessories"
+  ],
+  "featured": true,
+  "order": 1,
+  "visible": true
+}

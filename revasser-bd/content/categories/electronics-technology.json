@@ -2,8 +2,10 @@
   "name": "Electronics & Technology",
   "slug": "electronics-technology",
   "image": "",
-  "imageUrl": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80",
+  "imageUrl": "/brand/editorial/technology-headphones.jpg",
   "countLabel": "",
   "order": 3,
-  "visible": true
+  "visible": true,
+  "description": "Everyday technology, considered for how it looks and feels.",
+  "featured": true
 }

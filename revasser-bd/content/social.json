@@ -1,0 +1,30 @@
+{
+  "title": "@revasser.bd",
+  "text": "From our feed",
+  "items": [
+    {
+      "photo": "",
+      "photoUrl": "/brand/social/in-the-box.jpg",
+      "description": "A beaded ring in its Revasser gift box",
+      "link": "https://www.facebook.com/photo/?fbid=1132929105658062"
+    },
+    {
+      "photo": "",
+      "photoUrl": "/brand/social/on-black.jpg",
+      "description": "A crossover ring on a black display hand",
+      "link": "https://www.facebook.com/photo/?fbid=1135350178749288"
+    },
+    {
+      "photo": "",
+      "photoUrl": "/brand/products/cascade-gold.jpg",
+      "description": "A gold-tone statement ring in a red box",
+      "link": "https://www.facebook.com/photo/?fbid=1130630405887932"
+    },
+    {
+      "photo": "",
+      "photoUrl": "/brand/products/blossom-cluster-2.jpg",
+      "description": "A peach-stone flower cluster ring",
+      "link": "https://www.facebook.com/photo/?fbid=1141355454815427"
+    }
+  ]
+}

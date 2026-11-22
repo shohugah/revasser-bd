@@ -1,0 +1,15 @@
+{
+  "name": "Watches & Accessories",
+  "slug": "accessories",
+  "description": "The finishing touch.",
+  "photo": "",
+  "photoUrl": "/brand/editorial/watches-hand.jpg",
+  "categories": [
+    "watches",
+    "bags-footwear",
+    "lifestyle-products"
+  ],
+  "featured": true,
+  "order": 3,
+  "visible": true
+}
