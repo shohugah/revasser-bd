@@ -26,8 +26,8 @@
     "Dinajpur"
   ],
   "cod": true,
-  "bkash": true,
-  "nagad": true,
+  "bkash": false,
+  "nagad": false,
   "paymentText": "via Send Money to our merchant/personal number and enter your Transaction ID below for manual verification.",
   "confirmButton": "Confirm Order",
   "trackTitle": "Track Your Order"
