@@ -2,8 +2,10 @@
   "name": "Home & Living",
   "slug": "home-living",
   "image": "",
-  "imageUrl": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=80",
+  "imageUrl": "/brand/editorial/story-linen-drape.jpg",
   "countLabel": "",
   "order": 7,
-  "visible": true
+  "visible": true,
+  "description": "Objects to live with.",
+  "featured": false
 }

@@ -2,8 +2,10 @@
   "name": "Fashion & Clothing",
   "slug": "fashion-clothing",
   "image": "",
-  "imageUrl": "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=900&q=80",
+  "imageUrl": "/brand/editorial/fashion-sheer-silhouette.jpg",
   "countLabel": "",
   "order": 2,
-  "visible": true
+  "visible": true,
+  "description": "Pakistani fashion, brought to Bangladesh on pre-order.",
+  "featured": true
 }
