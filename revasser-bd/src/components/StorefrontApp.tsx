@@ -160,6 +160,7 @@ export default function StorefrontApp() {
   const [trxId, setTrxId] = useState("");
   const [orderSubmitting, setOrderSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
+  const [orderFailed, setOrderFailed] = useState(false);
 
   // Track order state
   const [trackId, setTrackId] = useState("");
@@ -236,6 +237,7 @@ export default function StorefrontApp() {
   async function handleCheckoutSubmit(e: React.FormEvent) {
     e.preventDefault();
     setOrderSubmitting(true);
+    setOrderFailed(false);
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -259,15 +261,11 @@ export default function StorefrontApp() {
         setOrderSuccess(`#${data.orderNumber}`);
         setCart([]);
       } else {
-        // Fallback confirmation when testing in demo mode without live WooCommerce API keys
-        const demoOrderNum = `REV-${Math.floor(100000 + Math.random() * 900000)}`;
-        setOrderSuccess(demoOrderNum);
-        setCart([]);
+        // Only a real order number from the server counts as a placed order.
+        setOrderFailed(true);
       }
     } catch {
-      const demoOrderNum = `REV-${Math.floor(100000 + Math.random() * 900000)}`;
-      setOrderSuccess(demoOrderNum);
-      setCart([]);
+      setOrderFailed(true);
     } finally {
       setOrderSubmitting(false);
     }
@@ -696,6 +694,7 @@ export default function StorefrontApp() {
                   onClick={() => {
                     setIsCartOpen(false);
                     setOrderSuccess(null);
+                    setOrderFailed(false);
                     setActiveModal("checkout");
                   }}
                   className="w-full py-3.5 rounded-full bg-[#9E5B3B] text-white text-sm font-medium hover:bg-[#82492E]"
@@ -850,6 +849,19 @@ export default function StorefrontApp() {
                     <span>৳{(subtotal + deliveryFee).toLocaleString()}</span>
                   </div>
                 </div>
+
+                {orderFailed && (
+                  <div
+                    role="alert"
+                    className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-800 space-y-1"
+                  >
+                    <p className="font-bold text-sm">We could not confirm your order.</p>
+                    <p>
+                      Please do not send any payment. If you already sent money, do not send it again and keep
+                      your Transaction ID. Your bag has not been cleared.
+                    </p>
+                  </div>
+                )}
 
                 <button
                   disabled={orderSubmitting}
