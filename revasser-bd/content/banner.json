@@ -6,7 +6,7 @@
   "text": "From fine jewellery and horology to modern fashion, electronics, and home living—delivered reliably across Bangladesh.",
   "primaryButton": "Explore Collection",
   "primaryLink": "#catalog",
-  "secondButton": "Track Your Order",
+  "secondButton": "",
   "stats": [
     {
       "value": "10+",
@@ -15,10 +15,6 @@
     {
       "value": "64",
       "label": "Districts Covered"
-    },
-    {
-      "value": "4.9 ★",
-      "label": "Customer Trust"
     }
   ],
   "photos": [
