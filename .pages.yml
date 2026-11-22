@@ -421,6 +421,16 @@ content:
         path: "revasser-bd/content/checkout.json"
         format: "json"
         fields:
+          - name: "whatsapp"
+            label: "WhatsApp number for orders"
+            type: "string"
+            description: "Like 017XXXXXXXX. Customers can see it. Empty switches WhatsApp ordering off."
+            pattern:
+              regex: "^(((\\+?88)?0)?1[3-9][0-9]{8})?$"
+              message: "Type an 11-digit number like 017XXXXXXXX, with no spaces"
+          - name: "whatsappButton"
+            label: "WhatsApp button text"
+            type: "string"
           - name: "insideFee"
             label: "Delivery fee inside your city"
             type: "number"
