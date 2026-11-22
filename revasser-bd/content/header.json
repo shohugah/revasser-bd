@@ -1,13 +1,36 @@
 {
   "announcements": [
-    "Cash on Delivery Across All 64 Districts"
+    "Cash on Delivery Across All 64 Districts",
+    "Pakistani fashion, now on pre-order"
   ],
   "logoImage": "",
   "logoMain": "REVASSER",
-  "logoAccent": "BD",
+  "logoAccent": "",
   "badge": "",
-  "searchPlaceholder": "Search jewellery, watches, fashion, electronics...",
+  "searchPlaceholder": "Search rings, fashion, watches",
   "trackLabel": "Track Order",
   "showTrack": false,
-  "bagLabel": "Bag"
+  "bagLabel": "Bag",
+  "nav": [
+    {
+      "label": "Jewellery",
+      "link": "/shop/jewellery-accessories"
+    },
+    {
+      "label": "Fashion",
+      "link": "/shop/fashion-clothing"
+    },
+    {
+      "label": "Accessories",
+      "link": "/shop/accessories"
+    },
+    {
+      "label": "Technology",
+      "link": "/shop/electronics-technology"
+    },
+    {
+      "label": "New Arrivals",
+      "link": "/shop/new-arrivals"
+    }
+  ]
 }

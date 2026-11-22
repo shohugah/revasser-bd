@@ -1,8 +1,10 @@
 {
-  "accent": "#9E5B3B",
-  "accentHover": "#82492E",
-  "dark": "#18181B",
-  "background": "#FAF8F5",
-  "headingFont": "Cormorant Garamond",
-  "bodyFont": "Plus Jakarta Sans"
+  "accent": "#B69A65",
+  "accentHover": "#9C814F",
+  "dark": "#171717",
+  "background": "#F7F5F0",
+  "soft": "#E8E1D6",
+  "campaign": "#3A1620",
+  "headingFont": "Bodoni Moda",
+  "bodyFont": "Jost"
 }
