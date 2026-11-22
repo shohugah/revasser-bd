@@ -1,34 +1,59 @@
-import type { Metadata } from "next";
-import { getDesign, getSeo } from "@/lib/content";
+import type { Metadata, Viewport } from "next";
+import { getContent, getDesign, getSeo, getStoreData } from "@/lib/content";
+import { fontVariables } from "@/lib/fonts";
+import { OG_IMAGE, SITE } from "@/lib/seo";
+import { StoreProvider } from "@/components/StoreProvider";
+import { Header } from "@/components/layout/Header";
+import { MobileMenu } from "@/components/layout/MobileMenu";
+import { SearchPanel } from "@/components/layout/SearchPanel";
+import { BagPanel } from "@/components/layout/BagPanel";
+import { QuickView } from "@/components/layout/QuickView";
+import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
 
 export function generateMetadata(): Metadata {
   const seo = getSeo();
   return {
-    metadataBase: new URL("https://revasserbd.shop"),
+    metadataBase: new URL(SITE),
     title: { default: seo.title, template: `%s | ${seo.siteName}` },
     description: seo.description,
-    openGraph: {
-      title: seo.title,
-      description: seo.shareText,
-      url: "https://revasserbd.shop",
-      siteName: seo.siteName,
-      locale: "en_BD",
-      type: "website",
-    },
+    openGraph: { title: seo.title, description: seo.shareText, siteName: seo.siteName, locale: "en_BD", type: "website", images: [OG_IMAGE] },
+    twitter: { card: "summary_large_image", images: [OG_IMAGE] },
   };
 }
 
+export function generateViewport(): Viewport {
+  return { themeColor: "#3A1620", width: "device-width", initialScale: 1 };
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const { variables, fontUrl } = getDesign();
+  const content = getContent();
+  const { variables, headingFont, bodyFont } = getDesign();
+  const { header } = content;
   return (
-    <html lang="en" style={variables as React.CSSProperties}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href={fontUrl} rel="stylesheet" />
-      </head>
-      <body className="font-sans antialiased bg-page text-ink">{children}</body>
+    <html lang="en" style={{ ...variables, ...fontVariables(headingFont, bodyFont) } as React.CSSProperties}>
+      <body>
+        <a href="#main" className="sr-only z-50 bg-ink px-5 py-3 text-page focus:not-sr-only focus:fixed focus:left-2 focus:top-2">
+          Skip to content
+        </a>
+        <StoreProvider data={getStoreData()}>
+          <Header
+            nav={header.nav}
+            announcements={header.announcements}
+            logoImage={header.logoImage}
+            badge={header.badge}
+            searchPlaceholder={header.searchPlaceholder || "Search"}
+            trackLabel={header.trackLabel}
+            showTrack={header.showTrack}
+          />
+          <main id="main" tabIndex={-1} className="page-in min-h-[100svh] outline-none">{children}</main>
+          <Footer content={content} />
+          <MobileMenu nav={header.nav} showTrack={header.showTrack} trackLabel={header.trackLabel} />
+          <SearchPanel placeholder={header.searchPlaceholder || "Search"} />
+          <BagPanel />
+          <QuickView />
+        </StoreProvider>
+      </body>
     </html>
   );
 }
