@@ -1,523 +1,1017 @@
 # The menus of the website editor: https://app.pagescms.org
 media:
-  - name: "photos"
-    label: "Photos"
-    input: "revasser-bd/public/uploads"
-    output: "/uploads"
-    categories: ["image"]
-    rename: "safe"
+  - name: photos
+    label: Photos
+    input: revasser-bd/public/uploads
+    output: /uploads
+    categories:
+      - image
+    rename: safe
 settings:
   content:
     merge: true
 content:
-  - name: "products"
-    label: "Products"
-    type: "collection"
-    path: "revasser-bd/content/products"
-    format: "json"
+  - name: products
+    label: Products
+    type: collection
+    path: revasser-bd/content/products
+    format: json
     filename: "{primary}.json"
     view:
-      fields: ["name", "price", "salePrice", "visible"]
-      primary: "name"
-      sort: ["name"]
+      fields:
+        - name
+        - price
+        - availability
+        - visible
+      primary: name
+      sort:
+        - name
     fields:
-      - name: "name"
-        label: "Product name"
-        type: "string"
+      - name: name
+        label: Product name
+        type: string
         required: true
-      - name: "photo"
-        label: "Upload photo"
-        type: "image"
+      - name: photo
+        label: Upload main photo
+        type: image
         options:
-          media: "photos"
-      - name: "photoUrl"
-        label: "...or photo web address"
-        type: "string"
-        description: "Used only when no photo is uploaded"
-      - name: "price"
-        label: "Price in taka"
-        type: "number"
+          media: photos
+      - name: photoUrl
+        label: ...or photo address
+        type: string
+        description: Used only when nothing is uploaded
+      - name: morePhotos
+        label: Upload more photos
+        type: image
+        options:
+          media: photos
+        list: true
+      - name: morePhotoUrls
+        label: ...or more photo addresses
+        type: string
+        list: true
+      - name: price
+        label: Price in taka
+        type: number
         options:
           min: 0
-        required: true
-      - name: "salePrice"
-        label: "Sale price in taka"
-        type: "number"
+        description: Empty shows "Price on WhatsApp"
+      - name: salePrice
+        label: Sale price in taka
+        type: number
         options:
           min: 0
-        description: "Leave empty when there is no sale"
-      - name: "category"
-        label: "Category"
-        type: "reference"
+        description: Must be lower than the price
+      - name: availability
+        label: Availability
+        type: select
         options:
-          collection: "categories"
+          values:
+            - Confirm on WhatsApp
+            - In stock
+            - Pre-order
+            - Sold out
+      - name: category
+        label: Category
+        type: reference
+        options:
+          collection: categories
           value: "{fields.slug}"
           label: "{fields.name}"
-          search: "name"
-      - name: "order"
-        label: "Position (1 shows first)"
-        type: "number"
+          search: name
+      - name: description
+        label: Description
+        type: text
+      - name: details
+        label: Details (material, size, care)
+        type: string
+        list: true
+      - name: colours
+        label: Colour choices
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{name}"
+        fields:
+          - name: name
+            label: Colour
+            type: string
+          - name: photo
+            label: Upload photo
+            type: image
+            options:
+              media: photos
+          - name: photoUrl
+            label: ...or photo address
+            type: string
+            description: Used only when nothing is uploaded
+      - name: sizes
+        label: Size choices
+        type: string
+        list: true
+      - name: isNew
+        label: Show in New Arrivals
+        type: boolean
+        default: false
+      - name: bestSeller
+        label: Best seller (only if it really is)
+        type: boolean
+        default: false
+      - name: reviews
+        label: Customer reviews
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{name}"
+        fields:
+          - name: name
+            label: Customer name
+            type: string
+            required: true
+          - name: text
+            label: Their exact words
+            type: text
+            required: true
+          - name: source
+            label: Where they said it
+            type: string
+            description: For example Facebook. Only publish real reviews, with permission.
+      - name: order
+        label: Position (1 shows first)
+        type: number
         options:
           min: 0
-      - name: "visible"
-        label: "Show on website"
-        type: "boolean"
+      - name: visible
+        label: Show on website
+        type: boolean
         default: true
-  - name: "categories"
-    label: "Categories"
-    type: "collection"
-    path: "revasser-bd/content/categories"
-    format: "json"
+  - name: categories
+    label: Categories
+    type: collection
+    path: revasser-bd/content/categories
+    format: json
     filename: "{primary}.json"
     view:
-      fields: ["name", "order", "visible"]
-      primary: "name"
-      sort: ["order", "name"]
+      fields:
+        - name
+        - order
+        - visible
+      primary: name
+      sort:
+        - order
+        - name
     fields:
-      - name: "name"
-        label: "Category name"
-        type: "string"
+      - name: name
+        label: Category name
+        type: string
         required: true
-      - name: "slug"
-        label: "Short code"
-        type: "string"
+      - name: slug
+        label: Short code
+        type: string
         required: true
-        description: "Small letters and dashes, like mens-shoes. Do not change it later."
+        description: Small letters and dashes, like mens-shoes. Do not change it later.
         pattern:
-          regex: "^[a-z0-9-]+$"
-          message: "Small letters, numbers and dashes only"
-      - name: "image"
-        label: "Upload photo"
-        type: "image"
+          regex: ^[a-z0-9-]+$
+          message: Small letters, numbers and dashes only
+      - name: image
+        label: Upload photo
+        type: image
         options:
-          media: "photos"
-      - name: "imageUrl"
-        label: "...or photo web address"
-        type: "string"
-      - name: "countLabel"
-        label: "Small text under the name"
-        type: "string"
-        description: "For example 12 items. Can be empty."
-      - name: "order"
-        label: "Position (1 shows first)"
-        type: "number"
+          media: photos
+      - name: imageUrl
+        label: ...or photo web address
+        type: string
+      - name: countLabel
+        label: Small text under the name
+        type: string
+        description: For example 12 items. Can be empty.
+      - name: description
+        label: Short description
+        type: text
+      - name: featured
+        label: Show on the homepage
+        type: boolean
+        default: false
+      - name: order
+        label: Position (1 shows first)
+        type: number
         options:
           min: 0
-      - name: "visible"
-        label: "Show on website"
-        type: "boolean"
+      - name: visible
+        label: Show on website
+        type: boolean
         default: true
-  - name: "theme"
-    label: "Theme and layout"
-    type: "group"
+  - name: collections
+    label: Collections
+    type: collection
+    path: revasser-bd/content/collections
+    format: json
+    filename: "{primary}.json"
+    view:
+      fields:
+        - name
+        - order
+        - visible
+      primary: name
+      sort:
+        - order
+    fields:
+      - name: name
+        label: Collection name
+        type: string
+        required: true
+      - name: slug
+        label: Short code
+        type: string
+        required: true
+        description: Small letters and dashes. Do not change it later.
+        pattern:
+          regex: ^[a-z0-9-]+$
+          message: Small letters, numbers and dashes only
+      - name: description
+        label: Short description
+        type: text
+      - name: photo
+        label: Upload photo
+        type: image
+        options:
+          media: photos
+      - name: photoUrl
+        label: ...or photo address
+        type: string
+        description: Used only when nothing is uploaded
+      - name: categories
+        label: Categories inside
+        type: reference
+        options:
+          collection: categories
+          value: "{fields.slug}"
+          label: "{fields.name}"
+          search: name
+          multiple: true
+      - name: featured
+        label: Show on the homepage
+        type: boolean
+        default: true
+      - name: order
+        label: Position
+        type: number
+        options:
+          min: 0
+      - name: visible
+        label: Show on website
+        type: boolean
+        default: true
+  - name: policies
+    label: Information pages
+    type: collection
+    path: revasser-bd/content/pages
+    format: json
+    filename: "{primary}.json"
+    view:
+      fields:
+        - title
+        - order
+      primary: title
+      sort:
+        - order
+    fields:
+      - name: title
+        label: Page title
+        type: string
+        required: true
+      - name: slug
+        label: Short code
+        type: string
+        required: true
+        description: Small letters and dashes. Do not change it later.
+        pattern:
+          regex: ^[a-z0-9-]+$
+          message: Small letters, numbers and dashes only
+      - name: intro
+        label: Introduction
+        type: text
+      - name: sections
+        label: Sections
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{title}"
+        fields:
+          - name: title
+            label: Heading
+            type: string
+          - name: text
+            label: Text
+            type: text
+            description: You can use {insideFee} {outsideFee} {payments} {email}
+      - name: order
+        label: Position
+        type: number
+        options:
+          min: 0
+      - name: visible
+        label: Show on website
+        type: boolean
+        default: true
+  - name: theme
+    label: Theme and layout
+    type: group
     items:
-      - name: "design"
-        label: "Colours and fonts"
-        type: "file"
-        path: "revasser-bd/content/design.json"
-        format: "json"
+      - name: design
+        label: Colours and fonts
+        type: file
+        path: revasser-bd/content/design.json
+        format: json
         fields:
-          - name: "accent"
-            label: "Main colour"
-            type: "string"
+          - name: accent
+            label: Gold accent
+            type: string
             required: true
-            description: "Buttons, highlights and sale labels"
+            description: Thin details, and text on dark backgrounds
             pattern:
-              regex: "^#[0-9A-Fa-f]{6}$"
-              message: "Use a colour code like #9E5B3B"
-          - name: "accentHover"
-            label: "Main colour when pointed at"
-            type: "string"
+              regex: ^#[0-9A-Fa-f]{6}$
+              message: "Use a colour code like #B69A65"
+          - name: accentHover
+            label: Deeper gold
+            type: string
             required: true
-            description: "A slightly darker version of the main colour"
+            description: Pointed-at gold details
             pattern:
-              regex: "^#[0-9A-Fa-f]{6}$"
-              message: "Use a colour code like #9E5B3B"
-          - name: "dark"
-            label: "Dark colour"
-            type: "string"
+              regex: ^#[0-9A-Fa-f]{6}$
+              message: "Use a colour code like #B69A65"
+          - name: dark
+            label: Deep black
+            type: string
             required: true
-            description: "Top bar, footer, dark buttons and headings"
+            description: Text, buttons, footer
             pattern:
-              regex: "^#[0-9A-Fa-f]{6}$"
-              message: "Use a colour code like #9E5B3B"
-          - name: "background"
-            label: "Page background"
-            type: "string"
+              regex: ^#[0-9A-Fa-f]{6}$
+              message: "Use a colour code like #B69A65"
+          - name: background
+            label: Page background
+            type: string
             required: true
-            description: "Behind everything"
+            description: Behind everything
             pattern:
-              regex: "^#[0-9A-Fa-f]{6}$"
-              message: "Use a colour code like #9E5B3B"
-          - name: "headingFont"
-            label: "Heading font"
-            type: "select"
+              regex: ^#[0-9A-Fa-f]{6}$
+              message: "Use a colour code like #B69A65"
+          - name: soft
+            label: Soft beige
+            type: string
+            required: true
+            description: Quiet panels
+            pattern:
+              regex: ^#[0-9A-Fa-f]{6}$
+              message: "Use a colour code like #B69A65"
+          - name: campaign
+            label: Campaign colour
+            type: string
+            required: true
+            description: The wine colour of banners
+            pattern:
+              regex: ^#[0-9A-Fa-f]{6}$
+              message: "Use a colour code like #B69A65"
+          - name: headingFont
+            label: Heading font
+            type: select
             options:
-              values: ["Cormorant Garamond", "Playfair Display", "Lora", "EB Garamond", "Montserrat"]
-          - name: "bodyFont"
-            label: "Text font"
-            type: "select"
+              values:
+                - Bodoni Moda
+                - Cormorant Garamond
+                - Playfair Display
+                - Lora
+                - EB Garamond
+                - Montserrat
+          - name: bodyFont
+            label: Text font
+            type: select
             options:
-              values: ["Plus Jakarta Sans", "Inter", "Poppins", "Hind Siliguri"]
-      - name: "sections"
-        label: "Show, hide and move sections"
-        type: "file"
-        path: "revasser-bd/content/sections.json"
-        format: "json"
+              values:
+                - Jost
+                - Plus Jakarta Sans
+                - Inter
+                - Poppins
+                - Hind Siliguri
+      - name: sections
+        label: Show, hide and move sections
+        type: file
+        path: revasser-bd/content/sections.json
+        format: json
         fields:
-          - name: "sections"
-            label: "Sections (drag to move)"
-            type: "object"
+          - name: sections
+            label: Sections (drag to move)
+            type: object
             list:
               collapsible:
                 collapsed: true
                 summary: "{section}"
             fields:
-              - name: "section"
-                label: "Section"
-                type: "select"
+              - name: section
+                label: Section
+                type: select
                 options:
-                  values: ["Banner", "Categories", "Products", "Extra blocks", "Benefits"]
-              - name: "show"
-                label: "Show"
-                type: "boolean"
+                  values:
+                    - Hero
+                    - Collections
+                    - New in
+                    - Campaign
+                    - Pre-order
+                    - Categories
+                    - Best sellers
+                    - Extra blocks
+                    - Story
+                    - Reviews
+                    - Social
+                    - Benefits
+                    - Join
+              - name: show
+                label: Show
+                type: boolean
                 default: true
-  - name: "pages"
-    label: "Homepage"
-    type: "group"
+  - name: pages
+    label: Homepage
+    type: group
     items:
-      - name: "header"
-        label: "Top bar, logo and menu"
-        type: "file"
-        path: "revasser-bd/content/header.json"
-        format: "json"
+      - name: header
+        label: Top bar, logo and menu
+        type: file
+        path: revasser-bd/content/header.json
+        format: json
         fields:
-          - name: "announcements"
-            label: "Top bar messages"
-            type: "string"
+          - name: announcements
+            label: Top bar messages
+            type: string
             list: true
-          - name: "logoImage"
-            label: "Upload logo"
-            type: "image"
+            description: Only real offers and true information
+          - name: logoImage
+            label: Upload a different logo
+            type: image
             options:
-              media: "photos"
-            description: "Replaces the text logo"
-          - name: "logoMain"
-            label: "Logo text"
-            type: "string"
-          - name: "logoAccent"
-            label: "Logo coloured word"
-            type: "string"
-          - name: "badge"
-            label: "Small label beside logo"
-            type: "string"
-            description: "Empty hides it"
-          - name: "searchPlaceholder"
-            label: "Search box text"
-            type: "string"
-          - name: "showTrack"
-            label: "Show track order link"
-            type: "boolean"
-          - name: "trackLabel"
-            label: "Track order link text"
-            type: "string"
-          - name: "bagLabel"
-            label: "Bag button text"
-            type: "string"
-      - name: "banner"
-        label: "Main banner"
-        type: "file"
-        path: "revasser-bd/content/banner.json"
-        format: "json"
-        fields:
-          - name: "tagline"
-            label: "Small label"
-            type: "string"
-          - name: "titleStart"
-            label: "Big title: start"
-            type: "string"
-          - name: "titleHighlight"
-            label: "Big title: coloured word"
-            type: "string"
-          - name: "titleEnd"
-            label: "Big title: end"
-            type: "string"
-          - name: "text"
-            label: "Paragraph"
-            type: "text"
-          - name: "primaryButton"
-            label: "Main button text"
-            type: "string"
-          - name: "primaryLink"
-            label: "Main button link"
-            type: "string"
-            description: "#catalog jumps to products"
-          - name: "secondButton"
-            label: "Track order button text"
-            type: "string"
-            description: "Empty hides it"
-          - name: "stats"
-            label: "Highlights"
-            type: "object"
+              media: photos
+            description: Replaces the Revasser logo in the header
+          - name: nav
+            label: Main menu
+            type: object
             list:
-              max: 3
               collapsible:
                 collapsed: true
-                summary: "{value} {label}"
+                summary: "{label}"
             fields:
-              - name: "value"
-                label: "Big text"
-                type: "string"
-              - name: "label"
-                label: "Small text"
-                type: "string"
-          - name: "photos"
-            label: "Banner photos (first is the large one)"
-            type: "object"
+              - name: label
+                label: Words
+                type: string
+              - name: link
+                label: Link
+                type: string
+                description: For example /shop/accessories
+          - name: badge
+            label: Small label beside logo
+            type: string
+            description: Empty hides it
+          - name: searchPlaceholder
+            label: Search box text
+            type: string
+          - name: showTrack
+            label: Show track order link
+            type: boolean
+          - name: trackLabel
+            label: Track order link text
+            type: string
+      - name: banner
+        label: Main banner
+        type: file
+        path: revasser-bd/content/banner.json
+        format: json
+        fields:
+          - name: tagline
+            label: Small label
+            type: string
+          - name: titleStart
+            label: Title line 1
+            type: string
+          - name: titleHighlight
+            label: Title line 2 (italic)
+            type: string
+          - name: titleEnd
+            label: Title line 3
+            type: string
+          - name: text
+            label: Paragraph
+            type: text
+          - name: primaryButton
+            label: Main button
+            type: string
+          - name: primaryLink
+            label: Main button link
+            type: string
+          - name: secondButton
+            label: Second link words
+            type: string
+          - name: secondLink
+            label: Second link address
+            type: string
+          - name: photo
+            label: Upload wide photo
+            type: image
+            options:
+              media: photos
+          - name: photoUrl
+            label: ...or photo address
+            type: string
+            description: Used only when nothing is uploaded
+          - name: mobilePhoto
+            label: Upload tall photo for phones
+            type: image
+            options:
+              media: photos
+          - name: mobilePhotoUrl
+            label: ...or photo address
+            type: string
+            description: Used only when nothing is uploaded
+          - name: photoDescription
+            label: What the photo shows
+            type: string
+      - name: headings
+        label: Headings and button words
+        type: file
+        path: revasser-bd/content/headings.json
+        format: json
+        fields:
+          - name: collectionsTitle
+            label: Collections heading
+            type: string
+          - name: collectionsText
+            label: Collections text
+            type: string
+          - name: newTitle
+            label: New in heading
+            type: string
+          - name: newText
+            label: New in text
+            type: string
+          - name: bestTitle
+            label: Best sellers heading
+            type: string
+          - name: bestText
+            label: Best sellers text
+            type: string
+          - name: categoriesTitle
+            label: Departments heading
+            type: string
+          - name: categoriesText
+            label: Departments small text
+            type: string
+          - name: viewAll
+            label: View all link
+            type: string
+          - name: shopTitle
+            label: Shop page heading
+            type: string
+          - name: reviewsTitle
+            label: Reviews heading
+            type: string
+          - name: sortFeatured
+            label: "Sort: featured"
+            type: string
+          - name: sortNew
+            label: "Sort: newest"
+            type: string
+          - name: sortLow
+            label: "Sort: low to high"
+            type: string
+          - name: sortHigh
+            label: "Sort: high to low"
+            type: string
+          - name: saveWord
+            label: Sale word
+            type: string
+          - name: addButton
+            label: Add to bag button
+            type: string
+          - name: priceOnRequest
+            label: When there is no price
+            type: string
+          - name: emptyTitle
+            label: Empty department heading
+            type: string
+          - name: emptyText
+            label: Empty department text
+            type: string
+      - name: blocks
+        label: Extra banners and blocks
+        type: file
+        path: revasser-bd/content/blocks.json
+        format: json
+        fields:
+          - name: blocks
+            label: Blocks
+            type: object
+            list:
+              collapsible:
+                collapsed: true
+                summary: "{title}"
+            fields:
+              - name: title
+                label: Title
+                type: string
+              - name: text
+                label: Text
+                type: text
+              - name: photo
+                label: Photo
+                type: image
+                options:
+                  media: photos
+              - name: button
+                label: Button text
+                type: string
+              - name: link
+                label: Button link
+                type: string
+      - name: campaign
+        label: "Campaign: I came, I saw"
+        type: file
+        path: revasser-bd/content/campaign.json
+        format: json
+        fields:
+          - name: line1
+            label: Line 1
+            type: string
+          - name: line2
+            label: Line 2
+            type: string
+          - name: line3
+            label: Line 3
+            type: string
+          - name: text
+            label: Text
+            type: text
+          - name: button
+            label: Button
+            type: string
+          - name: link
+            label: Button link
+            type: string
+          - name: photos
+            label: Photos
+            type: object
             list:
               max: 3
               collapsible:
                 collapsed: true
                 summary: "{description}"
             fields:
-              - name: "photo"
-                label: "Upload photo"
-                type: "image"
+              - name: photo
+                label: Upload photo
+                type: image
                 options:
-                  media: "photos"
-              - name: "photoUrl"
-                label: "...or photo web address"
-                type: "string"
-              - name: "description"
-                label: "What the photo shows"
-                type: "string"
-      - name: "headings"
-        label: "Headings and button words"
-        type: "file"
-        path: "revasser-bd/content/headings.json"
-        format: "json"
+                  media: photos
+              - name: photoUrl
+                label: ...or photo address
+                type: string
+                description: Used only when nothing is uploaded
+              - name: description
+                label: What it shows
+                type: string
+      - name: preorder
+        label: Pre-order service
+        type: file
+        path: revasser-bd/content/preorder.json
+        format: json
         fields:
-          - name: "categoriesTitle"
-            label: "Categories heading"
-            type: "string"
-          - name: "categoriesText"
-            label: "Categories small text"
-            type: "string"
-          - name: "showAll"
-            label: "Show all link"
-            type: "string"
-          - name: "productsTitle"
-            label: "Products heading"
-            type: "string"
-          - name: "showingWord"
-            label: "Word before product count"
-            type: "string"
-          - name: "productsWord"
-            label: "Word after product count"
-            type: "string"
-          - name: "sortFeatured"
-            label: "Sort: featured"
-            type: "string"
-          - name: "sortLow"
-            label: "Sort: low to high"
-            type: "string"
-          - name: "sortHigh"
-            label: "Sort: high to low"
-            type: "string"
-          - name: "saveWord"
-            label: "Sale label word"
-            type: "string"
-          - name: "addButton"
-            label: "Add to bag button"
-            type: "string"
-      - name: "blocks"
-        label: "Extra banners and blocks"
-        type: "file"
-        path: "revasser-bd/content/blocks.json"
-        format: "json"
-        fields:
-          - name: "blocks"
-            label: "Blocks"
-            type: "object"
+          - name: eyebrow
+            label: Small label
+            type: string
+          - name: title
+            label: Heading
+            type: string
+          - name: text
+            label: Text
+            type: text
+          - name: button
+            label: Button
+            type: string
+          - name: photo
+            label: Upload main photo
+            type: image
+            options:
+              media: photos
+          - name: photoUrl
+            label: ...or photo address
+            type: string
+            description: Used only when nothing is uploaded
+          - name: secondPhoto
+            label: Upload second photo
+            type: image
+            options:
+              media: photos
+          - name: secondPhotoUrl
+            label: ...or photo address
+            type: string
+            description: Used only when nothing is uploaded
+          - name: imageNote
+            label: Note under photos
+            type: string
+          - name: steps
+            label: Steps
+            type: object
             list:
               collapsible:
                 collapsed: true
                 summary: "{title}"
             fields:
-              - name: "title"
-                label: "Title"
-                type: "string"
-              - name: "text"
-                label: "Text"
-                type: "text"
-              - name: "photo"
-                label: "Photo"
-                type: "image"
-                options:
-                  media: "photos"
-              - name: "button"
-                label: "Button text"
-                type: "string"
-              - name: "link"
-                label: "Button link"
-                type: "string"
-      - name: "benefits"
-        label: "Benefits strip"
-        type: "file"
-        path: "revasser-bd/content/benefits.json"
-        format: "json"
+              - name: title
+                label: Step
+                type: string
+              - name: text
+                label: Explanation
+                type: text
+          - name: whatsappText
+            label: WhatsApp message
+            type: text
+      - name: story
+        label: Brand story
+        type: file
+        path: revasser-bd/content/story.json
+        format: json
         fields:
-          - name: "items"
-            label: "Benefits"
-            type: "object"
+          - name: eyebrow
+            label: Small label
+            type: string
+          - name: title
+            label: Heading
+            type: string
+          - name: text
+            label: Story
+            type: text
+            description: Leave a blank line between paragraphs
+          - name: button
+            label: Button
+            type: string
+          - name: photo
+            label: Upload photo
+            type: image
+            options:
+              media: photos
+          - name: photoUrl
+            label: ...or photo address
+            type: string
+            description: Used only when nothing is uploaded
+          - name: photoDescription
+            label: What it shows
+            type: string
+      - name: reviews
+        label: Customer reviews
+        type: file
+        path: revasser-bd/content/reviews.json
+        format: json
+        fields:
+          - name: reviews
+            label: Reviews
+            type: object
+            list:
+              collapsible:
+                collapsed: true
+                summary: "{name}"
+            fields:
+              - name: name
+                label: Customer name
+                type: string
+                required: true
+              - name: text
+                label: Their exact words
+                type: text
+                required: true
+              - name: source
+                label: Where they said it
+                type: string
+                description: For example Facebook. Only publish real reviews, with permission.
+      - name: social
+        label: Social gallery
+        type: file
+        path: revasser-bd/content/social.json
+        format: json
+        fields:
+          - name: title
+            label: Heading
+            type: string
+          - name: text
+            label: Small text
+            type: string
+          - name: items
+            label: Posts
+            type: object
+            list:
+              max: 8
+              collapsible:
+                collapsed: true
+                summary: "{description}"
+            fields:
+              - name: photo
+                label: Upload photo
+                type: image
+                options:
+                  media: photos
+              - name: photoUrl
+                label: ...or photo address
+                type: string
+                description: Used only when nothing is uploaded
+              - name: description
+                label: What it shows
+                type: string
+              - name: link
+                label: Link to the post
+                type: string
+      - name: join
+        label: WhatsApp updates sign-up
+        type: file
+        path: revasser-bd/content/join.json
+        format: json
+        fields:
+          - name: title
+            label: Heading
+            type: string
+          - name: text
+            label: Text
+            type: text
+          - name: button
+            label: Button
+            type: string
+          - name: message
+            label: Message customers send
+            type: text
+      - name: benefits
+        label: Benefits strip
+        type: file
+        path: revasser-bd/content/benefits.json
+        format: json
+        fields:
+          - name: items
+            label: Benefits
+            type: object
             list:
               collapsible:
                 collapsed: true
                 summary: "{title}"
             fields:
-              - name: "icon"
-                label: "Icon"
-                type: "select"
+              - name: icon
+                label: Icon
+                type: select
                 options:
-                  values: ["Truck", "Shield", "Return", "Headphones", "Phone", "Location", "Package", "Heart", "Check", "Star", "Gift"]
-              - name: "title"
-                label: "Title"
-                type: "string"
-              - name: "text"
-                label: "Small text"
-                type: "string"
-      - name: "footer"
-        label: "Footer"
-        type: "file"
-        path: "revasser-bd/content/footer.json"
-        format: "json"
+                  values:
+                    - Truck
+                    - Shield
+                    - Return
+                    - Headphones
+                    - Phone
+                    - Location
+                    - Package
+                    - Heart
+                    - Check
+                    - Star
+                    - Gift
+              - name: title
+                label: Title
+                type: string
+              - name: text
+                label: Small text
+                type: string
+      - name: footer
+        label: Footer
+        type: file
+        path: revasser-bd/content/footer.json
+        format: json
         fields:
-          - name: "facebook"
-            label: "Facebook link"
-            type: "string"
-            description: "Empty hides the icon"
-          - name: "instagram"
-            label: "Instagram link"
-            type: "string"
-            description: "Empty hides the icon"
-          - name: "tiktok"
-            label: "TikTok link"
-            type: "string"
-            description: "Empty hides the icon"
-          - name: "supportLabel"
-            label: "Help and support title"
-            type: "string"
-          - name: "supportEmail"
-            label: "Help and support email"
-            type: "string"
-            description: "Customers can see it. Empty hides it."
-          - name: "about"
-            label: "About text"
-            type: "text"
-          - name: "careTitle"
-            label: "First column title"
-            type: "string"
-          - name: "trackLink"
-            label: "Track order link text"
-            type: "string"
-          - name: "careLines"
-            label: "First column lines"
-            type: "string"
+          - name: facebook
+            label: Facebook link
+            type: string
+            description: Empty hides the icon
+          - name: instagram
+            label: Instagram link
+            type: string
+            description: Empty hides the icon
+          - name: tiktok
+            label: TikTok link
+            type: string
+            description: Empty hides the icon
+          - name: supportLabel
+            label: Help and support title
+            type: string
+          - name: supportEmail
+            label: Help and support email
+            type: string
+            description: Customers can see it. Empty hides it.
+          - name: about
+            label: About text
+            type: text
+          - name: careTitle
+            label: First column title
+            type: string
+          - name: trackLink
+            label: Track order link text
+            type: string
+          - name: careLines
+            label: First column lines
+            type: string
             list: true
-          - name: "paymentsTitle"
-            label: "Second column title"
-            type: "string"
-          - name: "paymentsText"
-            label: "Second column text"
-            type: "string"
-  - name: "shop"
-    label: "Shop settings"
-    type: "group"
+          - name: paymentsTitle
+            label: Second column title
+            type: string
+          - name: paymentsText
+            label: Second column text
+            type: string
+  - name: shop
+    label: Shop settings
+    type: group
     items:
-      - name: "checkout"
-        label: "Delivery, payment and checkout"
-        type: "file"
-        path: "revasser-bd/content/checkout.json"
-        format: "json"
+      - name: checkout
+        label: Delivery, payment and checkout
+        type: file
+        path: revasser-bd/content/checkout.json
+        format: json
         fields:
-          - name: "whatsapp"
-            label: "WhatsApp number for orders"
-            type: "string"
-            description: "Like 017XXXXXXXX. Customers can see it. Empty switches WhatsApp ordering off."
+          - name: whatsapp
+            label: WhatsApp number for orders
+            type: string
+            description: Like 017XXXXXXXX. Customers can see it. Empty switches WhatsApp ordering off.
             pattern:
-              regex: "^(((\\+?88)?0)?1[3-9][0-9]{8})?$"
-              message: "Type an 11-digit number like 017XXXXXXXX, with no spaces"
-          - name: "whatsappButton"
-            label: "WhatsApp button text"
-            type: "string"
-          - name: "insideFee"
-            label: "Delivery fee inside your city"
-            type: "number"
+              regex: ^(((\+?88)?0)?1[3-9][0-9]{8})?$
+              message: Type an 11-digit number like 017XXXXXXXX, with no spaces
+          - name: whatsappButton
+            label: WhatsApp button text
+            type: string
+          - name: insideFee
+            label: Delivery fee inside your city
+            type: number
             options:
               min: 0
-          - name: "outsideFee"
-            label: "Delivery fee outside your city"
-            type: "number"
+          - name: outsideFee
+            label: Delivery fee outside your city
+            type: number
             options:
               min: 0
-          - name: "insideDistrict"
-            label: "District with the inside fee"
-            type: "string"
-          - name: "insideLabel"
-            label: "Inside fee name"
-            type: "string"
-          - name: "outsideLabel"
-            label: "Outside fee name"
-            type: "string"
-          - name: "districts"
-            label: "Districts you deliver to"
-            type: "string"
+          - name: insideDistrict
+            label: District with the inside fee
+            type: string
+          - name: insideLabel
+            label: Inside fee name
+            type: string
+          - name: outsideLabel
+            label: Outside fee name
+            type: string
+          - name: districts
+            label: Districts you deliver to
+            type: string
             list: true
-          - name: "cod"
-            label: "Cash on delivery"
-            type: "boolean"
-          - name: "bkash"
-            label: "bKash"
-            type: "boolean"
-          - name: "nagad"
-            label: "Nagad"
-            type: "boolean"
-          - name: "paymentText"
-            label: "Send money instructions"
-            type: "text"
-          - name: "bagTitle"
-            label: "Bag title"
-            type: "string"
-          - name: "emptyBag"
-            label: "Empty bag message"
-            type: "string"
-          - name: "checkoutButton"
-            label: "Go to checkout button"
-            type: "string"
-          - name: "title"
-            label: "Checkout title"
-            type: "string"
-          - name: "confirmButton"
-            label: "Confirm button"
-            type: "string"
-          - name: "trackTitle"
-            label: "Track order title"
-            type: "string"
-      - name: "seo"
-        label: "Google and Facebook preview"
-        type: "file"
-        path: "revasser-bd/content/seo.json"
-        format: "json"
+          - name: cod
+            label: Cash on delivery
+            type: boolean
+          - name: bkash
+            label: bKash
+            type: boolean
+          - name: nagad
+            label: Nagad
+            type: boolean
+          - name: paymentText
+            label: Send money instructions
+            type: text
+          - name: bagTitle
+            label: Bag title
+            type: string
+          - name: emptyBag
+            label: Empty bag message
+            type: string
+          - name: checkoutButton
+            label: Go to checkout button
+            type: string
+          - name: title
+            label: Checkout title
+            type: string
+          - name: confirmButton
+            label: Confirm button
+            type: string
+          - name: trackTitle
+            label: Track order title
+            type: string
+      - name: seo
+        label: Google and Facebook preview
+        type: file
+        path: revasser-bd/content/seo.json
+        format: json
         fields:
-          - name: "title"
-            label: "Site title"
-            type: "string"
-          - name: "siteName"
-            label: "Site name"
-            type: "string"
-          - name: "description"
-            label: "Google description"
-            type: "text"
-          - name: "shareText"
-            label: "Text when shared"
-            type: "text"
+          - name: title
+            label: Site title
+            type: string
+          - name: siteName
+            label: Site name
+            type: string
+          - name: description
+            label: Google description
+            type: text
+          - name: shareText
+            label: Text when shared
+            type: text
