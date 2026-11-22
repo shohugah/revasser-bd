@@ -19,8 +19,10 @@ import {
   SlidersHorizontal,
   Star,
   Gift,
+  MessageCircle,
 } from "lucide-react";
 import type { Content, Product } from "@/lib/content";
+import { whatsAppOrderUrl } from "@/lib/whatsapp";
 
 const ICONS = {
   Truck, Shield: ShieldCheck, Return: RotateCcw, Headphones, Phone, Location: MapPin,
@@ -53,6 +55,7 @@ export default function StorefrontApp({ content }: { content: Content }) {
   const [orderSubmitting, setOrderSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
   const [orderFailed, setOrderFailed] = useState(false);
+  const [whatsAppUrl, setWhatsAppUrl] = useState("");
 
   // Track order state
   const [trackId, setTrackId] = useState("");
@@ -101,6 +104,31 @@ export default function StorefrontApp({ content }: { content: Content }) {
 
   async function handleCheckoutSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (checkout.whatsapp) {
+      const url = whatsAppOrderUrl(checkout.whatsapp, {
+        storeName: `${header.logoMain} ${header.logoAccent}`.trim(),
+        items: cart.map(({ product, quantity }) => ({
+          name: product.name,
+          price: product.discountPrice ?? product.regularPrice,
+          quantity,
+        })),
+        subtotal,
+        deliveryFee,
+        deliveryLabel: district === checkout.insideDistrict ? checkout.insideLabel : checkout.outsideLabel,
+        payment: { cod: "Cash on Delivery", bkash: "bKash", nagad: "Nagad" }[paymentMethod],
+        trxId: paymentMethod === "cod" ? "" : trxId,
+        customerName,
+        phone,
+        district,
+        area,
+        address,
+      });
+      setWhatsAppUrl(url);
+      // Must run inside the tap, before any await, or phones block it as a pop-up.
+      window.open(url, "_blank", "noopener,noreferrer");
+      // We cannot know whether they pressed Send, so never claim the order was placed or empty the bag.
+      return;
+    }
     setOrderSubmitting(true);
     setOrderFailed(false);
     try {
@@ -574,6 +602,7 @@ export default function StorefrontApp({ content }: { content: Content }) {
                     setIsCartOpen(false);
                     setOrderSuccess(null);
                     setOrderFailed(false);
+                    setWhatsAppUrl("");
                     setActiveModal("checkout");
                   }}
                   className="w-full py-3.5 rounded-full bg-accent text-white text-sm font-medium hover:bg-accent-hover"
@@ -597,7 +626,30 @@ export default function StorefrontApp({ content }: { content: Content }) {
               <X className="w-5 h-5" />
             </button>
 
-            {orderSuccess ? (
+            {whatsAppUrl ? (
+              <div className="text-center py-8 space-y-4" role="status">
+                <MessageCircle className="w-12 h-12 text-accent mx-auto" />
+                <h3 className="font-serif text-3xl font-semibold">One last step</h3>
+                <p className="text-sm text-stone-600">
+                  Press <strong>Send</strong> in WhatsApp. Your order reaches us only after you send that message,
+                  and is confirmed when we reply.
+                </p>
+                <a
+                  href={whatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-3 rounded-full bg-ink text-white text-sm font-medium hover:bg-accent"
+                >
+                  Open WhatsApp again
+                </a>
+                <p className="text-xs text-stone-500">
+                  WhatsApp not opening? Message us at <span className="font-semibold select-all">+{checkout.whatsapp}</span>
+                </p>
+                <button onClick={() => setWhatsAppUrl("")} className="text-xs font-medium text-accent underline">
+                  Change my details
+                </button>
+              </div>
+            ) : orderSuccess ? (
               <div className="text-center py-8 space-y-4">
                 <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
                 <h3 className="font-serif text-3xl font-semibold">Order Placed!</h3>
@@ -747,7 +799,7 @@ export default function StorefrontApp({ content }: { content: Content }) {
                   type="submit"
                   className="w-full py-3 rounded-full bg-ink text-white text-sm font-medium hover:bg-accent"
                 >
-                  {orderSubmitting ? "Placing Order..." : checkout.confirmButton}
+                  {orderSubmitting ? "Placing Order..." : (checkout.whatsapp ? checkout.whatsappButton : checkout.confirmButton)}
                 </button>
               </form>
             )}
