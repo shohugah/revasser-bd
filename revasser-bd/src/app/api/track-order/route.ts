@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { wcFetch } from "@/lib/woocommerce";
+import { toWhatsAppNumber } from "@/lib/whatsapp";
 
 const STATUS_MAP: Record<string, string> = {
   pending: "Pending",
@@ -26,8 +27,9 @@ export async function GET(req: NextRequest) {
 
     const order = await wcFetch<any>(`/orders/${orderId}`, { cache: "no-store" });
 
-    const orderPhone = order.billing?.phone?.replace(/\s+/g, "") || "";
-    if (!orderPhone.endsWith(phone.replace(/\s+/g, "").slice(-8))) {
+    // The whole number must match. A suffix match let anyone guess another customer's order.
+    const given = toWhatsAppNumber(phone);
+    if (!given || given !== toWhatsAppNumber(String(order.billing?.phone ?? ""))) {
       return NextResponse.json(
         { error: "Order not found or phone number does not match." },
         { status: 404 }
