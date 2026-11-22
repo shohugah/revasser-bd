@@ -1,0 +1,24 @@
+{
+  "sections": [
+    {
+      "section": "Banner",
+      "show": true
+    },
+    {
+      "section": "Categories",
+      "show": true
+    },
+    {
+      "section": "Products",
+      "show": true
+    },
+    {
+      "section": "Extra blocks",
+      "show": true
+    },
+    {
+      "section": "Benefits",
+      "show": true
+    }
+  ]
+}

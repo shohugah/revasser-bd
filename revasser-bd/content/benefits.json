@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "icon": "Truck",
+      "title": "Nationwide BD Delivery",
+      "text": "৳70 Inside Dhaka · ৳130 All 64 Districts"
+    },
+    {
+      "icon": "Shield",
+      "title": "Verified Quality",
+      "text": "Inspected before dispatch with Cash on Delivery"
+    },
+    {
+      "icon": "Return",
+      "title": "7-Day Easy Exchange",
+      "text": "Hassle-free size & defect replacement"
+    },
+    {
+      "icon": "Headphones",
+      "title": "Dedicated Support",
+      "text": "Direct WhatsApp & phone concierge"
+    }
+  ]
+}
