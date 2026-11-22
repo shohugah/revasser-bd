@@ -1,0 +1,41 @@
+{
+  "tagline": "Everything You Love, All in One Place",
+  "titleStart": "Curated Luxury &",
+  "titleHighlight": "Everyday",
+  "titleEnd": "Essentials.",
+  "text": "From fine jewellery and horology to modern fashion, electronics, and home living—delivered reliably across Bangladesh.",
+  "primaryButton": "Explore Collection",
+  "primaryLink": "#catalog",
+  "secondButton": "Track Your Order",
+  "stats": [
+    {
+      "value": "10+",
+      "label": "Curated Categories"
+    },
+    {
+      "value": "64",
+      "label": "Districts Covered"
+    },
+    {
+      "value": "4.9 ★",
+      "label": "Customer Trust"
+    }
+  ],
+  "photos": [
+    {
+      "photo": "",
+      "photoUrl": "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=900&q=80",
+      "description": "Revasser Jewellery"
+    },
+    {
+      "photo": "",
+      "photoUrl": "https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&w=900&q=80",
+      "description": "Revasser Watches"
+    },
+    {
+      "photo": "",
+      "photoUrl": "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=900&q=80",
+      "description": "Revasser Fashion"
+    }
+  ]
+}
