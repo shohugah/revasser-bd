@@ -23,7 +23,8 @@ export async function GET(req: NextRequest) {
 
     const products = rawProducts.map(mapWooProduct);
     return NextResponse.json({ products });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Could not load products." }, { status: 500 });
   }
 }
