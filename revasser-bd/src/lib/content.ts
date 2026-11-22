@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { toWhatsAppNumber } from "./whatsapp";
 
 // Everything in /content is edited through Pages CMS. The editor can leave any
 // optional field empty or missing, so every value gets a safe fallback here.
@@ -140,6 +141,8 @@ export function getContent() {
         "bagTitle", "emptyBag", "checkoutButton", "title", "insideDistrict", "insideLabel", "outsideLabel",
         "paymentText", "confirmButton", "trackTitle",
       ] as const),
+      whatsapp: toWhatsAppNumber(str(c.whatsapp)),
+      whatsappButton: str(c.whatsappButton) || "Order on WhatsApp",
       insideFee: num(c.insideFee),
       outsideFee: num(c.outsideFee),
       districts: list(c.districts).map(str),
