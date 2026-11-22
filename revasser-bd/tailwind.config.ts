@@ -9,13 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        alabaster: "#FAF8F5",
-        cognac: "#9E5B3B",
-        obsidian: "#18181B",
+        accent: "rgb(var(--accent) / <alpha-value>)",
+        "accent-hover": "rgb(var(--accent-hover) / <alpha-value>)",
+        ink: "rgb(var(--ink) / <alpha-value>)",
+        page: "rgb(var(--page) / <alpha-value>)",
       },
       fontFamily: {
-        serif: ["'Cormorant Garamond'", "Georgia", "serif"],
-        sans: ["'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        serif: ["var(--font-heading)", "Georgia", "serif"],
+        sans: ["var(--font-body)", "system-ui", "sans-serif"],
       },
     },
   },
