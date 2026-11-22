@@ -1,0 +1,21 @@
+{
+  "title": "Exchanges & returns",
+  "slug": "returns",
+  "intro": "If something is not right, talk to us first.",
+  "sections": [
+    {
+      "title": "Exchanges",
+      "text": "We offer a 7-day exchange for size issues and defects. Message us on WhatsApp or email with your order reference and a clear photo."
+    },
+    {
+      "title": "Refunds",
+      "text": "Refund requests are answered individually. Please contact us and wait for our reply before sending an item back."
+    },
+    {
+      "title": "Pre-orders",
+      "text": "Pre-order pieces are ordered especially for you. Ask us about their exchange terms before you confirm."
+    }
+  ],
+  "order": 2,
+  "visible": true
+}
