@@ -1,14 +1,13 @@
 {
   "announcements": [
-    "Complimentary Delivery in Dhaka on Orders Over ৳2,500",
     "Cash on Delivery Across All 64 Districts"
   ],
   "logoImage": "",
   "logoMain": "REVASSER",
   "logoAccent": "BD",
-  "badge": "Demo Catalog",
+  "badge": "",
   "searchPlaceholder": "Search jewellery, watches, fashion, electronics...",
   "trackLabel": "Track Order",
-  "showTrack": true,
+  "showTrack": false,
   "bagLabel": "Bag"
 }
