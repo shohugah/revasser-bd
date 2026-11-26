@@ -19,7 +19,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const listing = getListing(slug);
+  const listing = await getListing(slug);
   if (!listing) return {};
   const meta = pageMeta(listing.name, `${listing.name} at Revasser. ${listing.description}`.trim(), `/shop/${slug}`, listing.image || undefined);
   // An empty edit stays usable but is kept out of search results.
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ListingPage({ params }: Props) {
   const { slug } = await params;
-  const listing = getListing(slug);
+  const listing = await getListing(slug);
   if (!listing) notFound();
   const { headings: h } = getContent();
   const isFashion = listing.categories.includes("fashion-clothing");
