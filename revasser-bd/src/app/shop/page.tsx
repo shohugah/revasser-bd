@@ -1,14 +1,14 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { getContent } from "@/lib/content";
+import { getLiveContent } from "@/lib/content";
 import { pageMeta } from "@/lib/seo";
 import { PageIntro } from "@/components/ui/PageIntro";
 import { Listing, ListingFallback } from "@/components/shop/Listing";
 
 export const metadata = pageMeta("Shop all", "Shop the Revasser edit: jewellery, fashion and accessories delivered across Bangladesh.", "/shop");
 
-export default function ShopPage() {
-  const { products, headings: h, categories } = getContent();
+export default async function ShopPage() {
+  const { products, headings: h, categories } = await getLiveContent();
   return (
     <div className="shell pb-24">
       <PageIntro title={h.shopTitle || "Shop all"} />
