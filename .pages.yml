@@ -55,7 +55,7 @@ content:
         type: number
         options:
           min: 0
-        description: Empty shows "Price coming soon" and the piece cannot be ordered
+        description: Prices, sale prices and stock are set in the Products tab of your Revasser Orders Google Sheet. This is used only when the sheet has no price.
       - name: salePrice
         label: Sale price in taka
         type: number
