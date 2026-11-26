@@ -1,6 +1,6 @@
 export interface Review { name: string; text: string; source: string }
 export interface Colour { name: string; image: string }
-export type Availability = "" | "In stock" | "Pre-order" | "Sold out" | "Confirm on WhatsApp";
+export type Availability = "" | "In stock" | "Pre-order" | "Sold out" | "Confirm by phone";
 
 export interface Product {
   id: string;
@@ -8,7 +8,7 @@ export interface Product {
   category: string;
   categoryName: string;
   images: string[];
-  /** null: the owner has not set a price, so the site asks the customer to confirm it on WhatsApp. */
+  /** null: the owner has not set a price yet, so the piece cannot be ordered. */
   price: number | null;
   compareAt: number | null;
   availability: Availability;
@@ -33,9 +33,9 @@ export interface StoreData {
   collections: Collection[];
   labels: { saveWord: string; addButton: string; priceOnRequest: string };
   checkout: {
-    whatsapp: string; whatsappButton: string; confirmButton: string; title: string; bagTitle: string; emptyBag: string;
-    checkoutButton: string; paymentText: string; insideDistrict: string; insideLabel: string; outsideLabel: string;
-    insideFee: number; outsideFee: number; districts: string[]; cod: boolean; bkash: boolean; nagad: boolean;
+    whatsapp: string; confirmButton: string; title: string; bagTitle: string; emptyBag: string;
+    checkoutButton: string; insideDistrict: string; insideLabel: string; outsideLabel: string;
+    insideFee: number; outsideFee: number; districts: string[]; cod: boolean;
   };
   store: { name: string; email: string };
 }

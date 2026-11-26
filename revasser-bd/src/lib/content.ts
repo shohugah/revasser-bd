@@ -118,7 +118,8 @@ export const getContent = cache(() => {
       images: Array.from(new Set(images)),
       price: regular > 0 ? (onSale ? sale : regular) : null,
       compareAt: onSale ? regular : null,
-      availability: (["In stock", "Pre-order", "Sold out", "Confirm on WhatsApp"].includes(x.availability) ? x.availability : "") as Availability,
+      // "Confirm on WhatsApp" is the old name for "Confirm by phone".
+      availability: (x.availability === "Confirm on WhatsApp" ? "Confirm by phone" : ["In stock", "Pre-order", "Sold out", "Confirm by phone"].includes(x.availability) ? x.availability : "") as Availability,
       description: str(x.description),
       details: list(x.details).map(str),
       colours: list(x.colours).map((k) => ({ name: str(k.name), image: image(k.photo || k.photoUrl) })).filter((k) => k.name),
@@ -133,22 +134,17 @@ export const getContent = cache(() => {
   const checkout = {
     ...texts(c, [
       "bagTitle", "emptyBag", "checkoutButton", "title", "insideDistrict", "insideLabel", "outsideLabel",
-      "paymentText", "confirmButton", "trackTitle",
+      "confirmButton", "trackTitle",
     ] as const),
     whatsapp: toWhatsAppNumber(str(c.whatsapp)),
-    whatsappButton: str(c.whatsappButton) || "Order on WhatsApp",
     insideFee: num(c.insideFee),
     outsideFee: num(c.outsideFee),
     districts: list(c.districts).map(str),
     cod: c.cod !== false,
-    bkash: c.bkash === true,
-    nagad: c.nagad === true,
   };
 
   const supportEmail = email(f.supportEmail);
-  const payments =
-    [checkout.cod && "Cash on Delivery", checkout.bkash && "bKash", checkout.nagad && "Nagad"].filter(Boolean).join(", ") ||
-    "Confirmed on WhatsApp";
+  const payments = checkout.cod ? "Cash on Delivery" : "Online ordering is paused";
   // Policy pages quote live settings so they cannot drift from checkout.
   const fill = (s: unknown) =>
     str(s)
