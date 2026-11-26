@@ -9,7 +9,9 @@ Track Order on the website shows the **Status** you set in the sheet.
 2. In the sheet: **Extensions → Apps Script**. Delete what is there, paste everything from `Code.gs`, and press **Save**.
 3. Choose **setup** in the function menu at the top and press **Run**. Google asks for permission: allow it.
    (Google may say the app is unverified, because it is your own script. Choose *Advanced → Go to project*.)
-   The log at the bottom prints `ORDERS_SECRET for Vercel: …`. Keep that window open.
+   The log at the bottom prints `ORDERS_SECRET for Vercel: …`.
+   The same code is easier to copy from **Project Settings (gear icon) → Script Properties → SECRET**:
+   click Edit script properties, click the value, Cmd+A, Cmd+C.
 4. **Deploy → New deployment →** gear icon **→ Web app**.
    *Execute as:* **Me**. *Who has access:* **Anyone**. Press **Deploy** and copy the **Web app URL**
    (it starts with `https://script.google.com/macros/s/` and ends with `/exec`).
@@ -17,7 +19,8 @@ Track Order on the website shows the **Status** you set in the sheet.
    **Production** and **Preview**:
    - `ORDERS_SCRIPT_URL` = the Web app URL from step 4
    - `ORDERS_SECRET` = the long secret from step 3
-6. Redeploy (Vercel → Deployments → ⋯ → Redeploy) so the site picks them up.
+   Choose type **Secret** for both. Check both names appear in the list after Save.
+6. Redeploy (Vercel → Deployments → ⋯ → Redeploy) so the site picks them up. A new commit also does it.
 
 Never paste the secret into a chat, a file in this repository, or Pages CMS.
 
