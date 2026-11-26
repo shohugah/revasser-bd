@@ -19,7 +19,13 @@ export async function POST(req: NextRequest) {
   // A hidden field people never see. Bots fill it in.
   if (clean(body.website, 200)) return fail("Please check your order and try again.");
 
-  const { products, checkout } = getStoreData();
+  let store;
+  try {
+    store = await getStoreData();
+  } catch {
+    return fail("We could not reach the shop just now. Nothing was charged. Please try again in a minute.", 503);
+  }
+  const { products, checkout } = store;
   const name = clean(body.customerName, 80);
   const mobile = toWhatsAppNumber(clean(body.phone, 30));
   const email = clean(body.email, 120);
@@ -56,6 +62,16 @@ export async function POST(req: NextRequest) {
     lines.push({ product, option, quantity });
   }
 
+  // Where the owner counts stock in the Products sheet, never take more than is left.
+  const wanted = new Map<string, number>();
+  for (const l of lines) wanted.set(l.product.id, (wanted.get(l.product.id) ?? 0) + l.quantity);
+  for (const l of lines) {
+    const left = l.product.stock;
+    if (typeof left === "number" && l.product.availability !== "Pre-order" && (wanted.get(l.product.id) ?? 0) > left) {
+      return fail(left > 0 ? `Only ${left} ${l.product.name} left. Please lower the quantity.` : `${l.product.name} is sold out. Please remove it to continue.`);
+    }
+  }
+
   const subtotal = lines.reduce((sum, l) => sum + (l.product.price ?? 0) * l.quantity, 0);
   const delivery = district === checkout.insideDistrict ? checkout.insideFee : checkout.outsideFee;
   const total = subtotal + delivery;
@@ -81,8 +97,15 @@ export async function POST(req: NextRequest) {
         subtotal,
         delivery,
         total,
+        // Lets the sheet lower In Stock for each piece.
+        lines: Array.from(wanted, ([id, quantity]) => ({ id, quantity })),
       },
     });
+    if (saved.error === "stock") {
+      const left = Number((saved as { left?: unknown }).left) || 0;
+      const name = String((saved as { name?: unknown }).name || "A piece");
+      return fail(left > 0 ? `Only ${left} ${name} left. Please lower the quantity.` : `${name} has just sold out. Please remove it to continue.`, 409);
+    }
     if (!saved.ok) throw new Error(saved.error || "Order sheet refused the order");
   } catch (err) {
     console.error("Order not saved:", err);
