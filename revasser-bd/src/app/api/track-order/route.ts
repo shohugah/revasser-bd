@@ -1,55 +1,68 @@
 import { NextRequest, NextResponse } from "next/server";
-import { wcFetch } from "@/lib/woocommerce";
 import { toWhatsAppNumber } from "@/lib/whatsapp";
+import { callOrderSheet, clean, ordersReady } from "@/lib/orders";
 
-const STATUS_MAP: Record<string, string> = {
-  pending: "Pending",
-  "on-hold": "Pending",
-  processing: "Confirmed & Processing",
-  completed: "Delivered",
-  cancelled: "Cancelled",
-  refunded: "Returned",
-  failed: "Cancelled",
+export const dynamic = "force-dynamic";
+
+const STATUS_TEXT: Record<string, string> = {
+  New: "Received. We will call you to confirm it.",
+  Confirmed: "Confirmed and being prepared.",
+  Shipped: "On its way to you.",
+  Delivered: "Delivered.",
+  Cancelled: "Cancelled.",
+  Returned: "Returned.",
 };
 
-export async function GET(req: NextRequest) {
+/** Sheets may hand back a date string in several shapes. Show a short Dhaka date when it can be read. */
+function shortDate(value: unknown) {
+  const text = String(value ?? "").trim();
+  const date = new Date(text);
+  if (!text || Number.isNaN(date.getTime())) return text;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Dhaka" });
+}
+
+const money = (value: unknown) => {
+  const n = Number(String(value ?? "").replace(/[^\d.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n.toLocaleString("en-US") : String(value ?? "");
+};
+
+const NOT_FOUND = "We could not find an order with that number and mobile.";
+
+// POST, not GET, so the mobile number never sits in a URL or a log.
+export async function POST(req: NextRequest) {
+  if (!ordersReady()) return NextResponse.json({ error: "Order tracking is being set up. Please try again soon." }, { status: 503 });
+  let body: Record<string, unknown>;
   try {
-    const { searchParams } = new URL(req.url);
-    const orderId = searchParams.get("orderId")?.replace(/\D/g, "");
-    const phone = searchParams.get("phone")?.trim();
-
-    if (!orderId || !phone) {
-      return NextResponse.json(
-        { error: "Both Order ID and Phone Number are required." },
-        { status: 400 }
-      );
-    }
-
-    const order = await wcFetch<any>(`/orders/${orderId}`, { cache: "no-store" });
-
-    // The whole number must match. A suffix match let anyone guess another customer's order.
-    const given = toWhatsAppNumber(phone);
-    if (!given || given !== toWhatsAppNumber(String(order.billing?.phone ?? ""))) {
-      return NextResponse.json(
-        { error: "Order not found or phone number does not match." },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      orderId: order.id,
-      status: STATUS_MAP[order.status] || order.status,
-      dateCreated: order.date_created,
-      total: order.total,
-      paymentMethod: order.payment_method_title,
-      district: order.billing?.city,
-      items: order.line_items.map((item: any) => ({
-        name: item.name,
-        quantity: item.quantity,
-        total: item.total,
-      })),
-    });
+    body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Order not found." }, { status: 404 });
+    return NextResponse.json({ error: NOT_FOUND }, { status: 400 });
+  }
+  const orderNo = clean(body.orderNo, 30).toUpperCase();
+  const mobile = toWhatsAppNumber(clean(body.phone, 30));
+  if (!/^R\d{6}-[A-Z0-9]{4,6}$/.test(orderNo) || !mobile) {
+    return NextResponse.json({ error: "Enter the order number (like R251127-7KQ2M) and the mobile number you used." }, { status: 400 });
+  }
+
+  try {
+    const order = await callOrderSheet<{ orderNo?: string; date?: string; status?: string; items?: string; total?: string; district?: string; message?: string }>({
+      action: "track",
+      orderNo,
+      phone: `0${mobile.slice(3)}`,
+    });
+    if (order.error || !order.orderNo) return NextResponse.json({ error: NOT_FOUND }, { status: 404 });
+    const status = String(order.status || "New");
+    return NextResponse.json({
+      orderNo: order.orderNo,
+      date: shortDate(order.date),
+      status,
+      statusText: STATUS_TEXT[status] ?? status,
+      items: order.items,
+      total: money(order.total),
+      district: order.district,
+      message: order.message,
+    });
+  } catch (err) {
+    console.error("Tracking failed:", err);
+    return NextResponse.json({ error: "We could not check that just now. Please try again in a minute." }, { status: 502 });
   }
 }
