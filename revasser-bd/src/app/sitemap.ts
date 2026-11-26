@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
-import { getContent, getListing } from "@/lib/content";
+import { getLiveContent, getListing } from "@/lib/content";
 import { absolute } from "@/lib/seo";
 import { productHref } from "@/lib/format";
 
-export const dynamic = "force-static";
+export const revalidate = 300;
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const { categories, collections, pages, products } = getContent();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { categories, collections, pages, products } = await getLiveContent();
   const listings = [...categories, ...collections].map((c) => c.slug).concat("new-arrivals", "best-sellers");
   const paths = [
     "/",
@@ -15,7 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/about",
     "/contact",
     // Empty edits are marked noindex, so they stay out of the sitemap too.
-    ...Array.from(new Set(listings)).filter((slug) => getListing(slug)?.products.length).map((slug) => `/shop/${slug}`),
+    ...(await Promise.all(Array.from(new Set(listings)).map(async (slug) => ((await getListing(slug))?.products.length ? `/shop/${slug}` : ""))).then((x) => x.filter(Boolean))),
     ...products.map((p) => productHref(p.id)),
     ...pages.map((p) => `/${p.slug}`),
   ];

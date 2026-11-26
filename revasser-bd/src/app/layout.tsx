@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { getContent, getDesign, getSeo, getStoreData } from "@/lib/content";
+import { getDesign, getLiveContent, getSeo, getStoreData } from "@/lib/content";
 import { fontVariables } from "@/lib/fonts";
 import { OG_IMAGE, SITE } from "@/lib/seo";
 import { StoreProvider } from "@/components/StoreProvider";
@@ -10,6 +10,10 @@ import { BagPanel } from "@/components/layout/BagPanel";
 import { QuickView } from "@/components/layout/QuickView";
 import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
+
+// Pages are rebuilt in the background at most every 5 minutes, so price and stock
+// changes in the Products sheet reach the website without a new deployment.
+export const revalidate = 300;
 
 export function generateMetadata(): Metadata {
   const seo = getSeo();
@@ -26,8 +30,8 @@ export function generateViewport(): Viewport {
   return { themeColor: "#3A1620", width: "device-width", initialScale: 1 };
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const content = getContent();
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const content = await getLiveContent();
   const { variables, headingFont, bodyFont } = getDesign();
   const { header } = content;
   return (
@@ -36,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="sr-only z-50 bg-ink px-5 py-3 text-page focus:not-sr-only focus:fixed focus:left-2 focus:top-2">
           Skip to content
         </a>
-        <StoreProvider data={getStoreData()}>
+        <StoreProvider data={await getStoreData()}>
           <Header
             nav={header.nav}
             announcements={header.announcements}
