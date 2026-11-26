@@ -67,7 +67,7 @@ export default async function ProductPage({ params }: Props) {
           <details className={detail}>
             <summary className={summary}>Delivery {plus}</summary>
             <p className="pb-5 text-sm text-muted">
-              {checkout.insideLabel} {taka(checkout.insideFee)}. {checkout.outsideLabel} {taka(checkout.outsideFee)}. We confirm timing on WhatsApp.{" "}
+              {checkout.insideLabel} {taka(checkout.insideFee)}. {checkout.outsideLabel} {taka(checkout.outsideFee)}. Cash on Delivery. We call to confirm before sending.{" "}
               <Link href="/delivery" className="underline underline-offset-4">Delivery information</Link>
             </p>
           </details>
