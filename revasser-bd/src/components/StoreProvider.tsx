@@ -13,9 +13,8 @@ export interface SavedOrder {
   reference: string;
   date: string;
   items: { name: string; option: string; quantity: number; price: number | null }[];
-  url: string;
-  /** True only after the customer tells us they pressed Send. It is never a confirmation. */
-  sent: boolean;
+  /** Total the server charged, delivery included. */
+  total: number;
 }
 export interface Details { customerName: string; phone: string; email: string; district: string; area: string; address: string }
 interface Saved { bag: BagLine[]; wishlist: string[]; recent: string[]; orders: SavedOrder[]; details: Details | null }
@@ -31,7 +30,8 @@ function load(): Saved {
       bag: array(v.bag).filter((l) => l && typeof l.id === "string" && Number.isInteger(l.quantity) && l.quantity > 0),
       wishlist: array(v.wishlist).filter((x) => typeof x === "string"),
       recent: array(v.recent).filter((x) => typeof x === "string"),
-      orders: array(v.orders).filter((o) => o && typeof o.reference === "string" && Array.isArray(o.items) && String(o.url).startsWith("https://wa.me/")),
+      // Only orders the website saved. Older WhatsApp drafts had no total and are dropped.
+      orders: array(v.orders).filter((o) => o && typeof o.reference === "string" && Array.isArray(o.items) && typeof o.total === "number"),
       details: v.details && typeof v.details === "object" ? v.details : null,
     };
   } catch {
@@ -116,10 +116,7 @@ function useStoreValue(data: StoreData) {
   }, []);
 
   const recordOrder = (order: SavedOrder, details: Details | null) =>
-    setSaved((s) => ({ ...s, details, orders: [order, ...s.orders.filter((o) => o.reference !== order.reference)].slice(0, 30) }));
-
-  const markSent = (reference: string) =>
-    setSaved((s) => ({ ...s, bag: [], orders: s.orders.map((o) => (o.reference === reference ? { ...o, sent: true } : o)) }));
+    setSaved((s) => ({ ...s, bag: [], details, orders: [order, ...s.orders.filter((o) => o.reference !== order.reference)].slice(0, 30) }));
 
   return {
     data,
@@ -139,7 +136,6 @@ function useStoreValue(data: StoreData) {
     toggleWish,
     viewed,
     recordOrder,
-    markSent,
     forget: () => {
       setSaved(EMPTY);
       setToast("Everything saved on this device was cleared");
