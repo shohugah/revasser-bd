@@ -49,6 +49,8 @@ export async function POST(req: NextRequest) {
       orderNo,
       phone: `0${mobile.slice(3)}`,
     });
+    // "forbidden" means the secret in Vercel does not match the sheet: a set-up fault, not a missing order.
+    if (order.error === "forbidden") throw new Error("Order sheet refused the secret. Check ORDERS_SECRET in Vercel.");
     if (order.error || !order.orderNo) return NextResponse.json({ error: NOT_FOUND }, { status: 404 });
     const status = String(order.status || "New");
     return NextResponse.json({
