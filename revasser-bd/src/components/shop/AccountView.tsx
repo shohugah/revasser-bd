@@ -12,10 +12,10 @@ export function AccountView() {
     <div className="grid gap-14 lg:grid-cols-[1.5fr_1fr] lg:gap-24">
       <section>
         <h2 className="display-md">Order history</h2>
-        <p className="mt-3 text-sm text-muted">Orders started in this browser. Our WhatsApp reply is your confirmation.</p>
+        <p className="mt-3 text-sm text-muted">Orders placed from this browser. We call to confirm each one before it is sent.</p>
         {orders.length === 0 ? (
           <div className="mt-8 border-t border-ink/10 pt-8">
-            <p>No orders started on this device yet.</p>
+            <p>No orders placed from this device yet.</p>
             <Link href="/shop" className="btn-dark mt-6">Start with the edit</Link>
           </div>
         ) : (
@@ -28,9 +28,8 @@ export function AccountView() {
                 </p>
                 <p className="mt-2 text-sm text-muted">{o.items.map((i) => `${i.quantity} × ${i.name}${i.option ? ` (${i.option})` : ""}`).join(", ")}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-5 text-sm">
-                  <span>{o.sent ? "You marked this as sent" : "Not marked as sent"}</span>
-                  <Link href={`/track-order?ref=${encodeURIComponent(o.reference)}`} className="flex min-h-11 items-center underline underline-offset-4">Ask for an update</Link>
-                  {!o.sent && <a href={o.url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center underline underline-offset-4">Open message again</a>}
+                  <span>Total ৳{o.total.toLocaleString("en-US")}, Cash on Delivery</span>
+                  <Link href={`/track-order?ref=${encodeURIComponent(o.reference)}`} className="flex min-h-11 items-center underline underline-offset-4">Track this order</Link>
                 </div>
               </li>
             ))}

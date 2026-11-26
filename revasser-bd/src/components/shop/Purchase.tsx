@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { whatsAppChatUrl } from "@/lib/whatsapp";
 import { useStore } from "../StoreProvider";
 
 export function Purchase({ product: p, compact, onColour }: { product: Product; compact?: boolean; onColour?: (image: string) => void }) {
@@ -12,6 +11,7 @@ export function Purchase({ product: p, compact, onColour }: { product: Product; 
   const [size, setSize] = useState(p.sizes.length === 1 ? p.sizes[0] : "");
   const [error, setError] = useState("");
   const soldOut = p.availability === "Sold out";
+  const unpriced = p.price === null;
   const wished = isWished(p.id);
 
   const groups = [
@@ -25,8 +25,6 @@ export function Purchase({ product: p, compact, onColour }: { product: Product; 
     setError("");
     add(p.id, [colour, size].filter(Boolean).join(" / "));
   }
-
-  const question = `Hello Revasser, I have a question about the ${p.name}${colour ? ` (${colour})` : ""}.`;
 
   return (
     <div className={compact ? "mt-5" : "mt-8"}>
@@ -55,16 +53,13 @@ export function Purchase({ product: p, compact, onColour }: { product: Product; 
       ))}
       {error && <p role="alert" className="mb-3 text-sm text-red-800">{error}</p>}
       <div className="flex gap-2">
-        <button onClick={submit} disabled={soldOut} className="btn-dark flex-1">{soldOut ? "Sold out" : data.labels.addButton || "Add to bag"}</button>
+        <button onClick={submit} disabled={soldOut || unpriced} className="btn-dark flex-1">
+          {soldOut ? "Sold out" : unpriced ? data.labels.priceOnRequest : data.labels.addButton || "Add to bag"}
+        </button>
         <button onClick={() => toggleWish(p)} aria-pressed={wished} aria-label={`Save ${p.name} to wishlist`} className="btn-line w-14 shrink-0 px-0">
           <Heart className={`h-[18px] w-[18px] ${wished ? "fill-current" : ""}`} strokeWidth={1.25} />
         </button>
       </div>
-      {!compact && data.checkout.whatsapp && (
-        <a href={whatsAppChatUrl(data.checkout.whatsapp, question)} target="_blank" rel="noopener noreferrer" className="btn-line mt-2 w-full">
-          <MessageCircle className="h-4 w-4" strokeWidth={1.25} /> Ask on WhatsApp
-        </a>
-      )}
     </div>
   );
 }
