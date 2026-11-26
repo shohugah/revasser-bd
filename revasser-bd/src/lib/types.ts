@@ -11,6 +11,8 @@ export interface Product {
   /** null: the owner has not set a price yet, so the piece cannot be ordered. */
   price: number | null;
   compareAt: number | null;
+  /** Counted stock from the Products sheet; null when the owner does not count this piece. */
+  stock?: number | null;
   availability: Availability;
   description: string;
   details: string[];

@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { cache } from "react";
 import { toWhatsAppNumber } from "./whatsapp";
+import { applyRow, sheetFor } from "./catalog";
 import type { Availability, Category, Collection, Product, Review, StoreData } from "./types";
 
 // Everything in /content is edited through Pages CMS. The editor can leave any
@@ -231,8 +232,19 @@ export const getContent = cache(() => {
 
 export type Content = ReturnType<typeof getContent>;
 
-export function getStoreData(): StoreData {
-  const { products, categories, collections, checkout, headings, footer } = getContent();
+/**
+ * Content with the Products sheet applied: prices, sale prices, stock and visibility.
+ * Use this wherever those matter. If the sheet cannot be read, Pages CMS values are used.
+ */
+export const getLiveContent = cache(async () => {
+  const content = getContent();
+  const sheet = await sheetFor(content.products);
+  if (!sheet) return content;
+  return { ...content, products: content.products.flatMap((p) => applyRow(p, sheet[p.id]) ?? []) };
+});
+
+export async function getStoreData(): Promise<StoreData> {
+  const { products, categories, collections, checkout, headings, footer } = await getLiveContent();
   return {
     products,
     categories,
@@ -244,8 +256,8 @@ export function getStoreData(): StoreData {
 }
 
 /** /shop/<slug> can be a category, a collection or one of the two built-in edits. */
-export function getListing(slug: string) {
-  const { products, categories, collections } = getContent();
+export async function getListing(slug: string) {
+  const { products, categories, collections } = await getLiveContent();
   if (slug === "new-arrivals")
     return { name: "New Arrivals", description: "The latest pieces added to the edit.", image: "", products: products.filter((p) => p.isNew), categories: [] as string[] };
   if (slug === "best-sellers")
