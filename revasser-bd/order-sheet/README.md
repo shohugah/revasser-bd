@@ -46,3 +46,5 @@ The dashboard at `/admin` reads orders and stock. It does not change the sheet.
 4. **Deploy → Manage deployments →** pencil → Version: **New version** → Deploy.
 
 Never paste either secret into a chat or a file in this repository.
+
+The dashboard reads the sheet each time you open it, so reload to see new orders.
