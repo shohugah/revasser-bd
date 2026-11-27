@@ -30,7 +30,7 @@ export function GoogleSignIn({ hint }: { hint: string }) {
           else setError(body.error || "Google sign-in did not work.");
         },
       });
-      window.google.accounts.id.renderButton(box.current, { theme: "outline", size: "large", text: "signin_with", shape: "rectangular" });
+      window.google.accounts.id.renderButton(box.current, { theme: "outline", size: "large", text: "signin_with", shape: "rectangular", locale: "en" });
     };
     if (window.google) return draw();
     let script = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT}"]`);
