@@ -64,11 +64,13 @@ function doPost(e) {
   const secret = PropertiesService.getScriptProperties().getProperty('SECRET');
   if (!secret || body.secret !== secret) return reply_({ error: 'forbidden' });
   // Admin dashboard actions need the second secret as well.
-  if (['report', 'admin_products', 'update_product'].indexOf(body.action) >= 0) {
+  if (['report', 'admin_products', 'update_product', 'admin_orders', 'update_order'].indexOf(body.action) >= 0) {
     const admin = PropertiesService.getScriptProperties().getProperty('ADMIN_SECRET');
     if (!admin || body.admin !== admin) return reply_({ error: 'admin forbidden' });
     if (body.action === 'report') return reply_(report_());
     if (body.action === 'admin_products') return reply_(adminProducts_());
+    if (body.action === 'admin_orders') return reply_(adminOrders_());
+    if (body.action === 'update_order') return reply_(updateOrder_(String(body.orderNo || ''), body.expected || {}, body.changes || {}, String(body.stock || ''), String(body.by || '')));
     return reply_(updateProduct_(String(body.id || ''), body.expected || {}, body.changes || {}, String(body.by || '')));
   }
   if (body.action === 'create') return reply_(create_(body.order || {}));
@@ -111,7 +113,10 @@ function create_(o) {
     put('Payment', text_(o.payment));
     put('Customer note', text_(o.note));
     sheet.appendRow(row);
-    takeStock_(lines);
+    const added = sheet.getLastRow();
+    const taken = takeStock_(lines);
+    // What was taken from stock, so a cancelled order can be put back. "-" means nothing was counted.
+    if (col['Lines'] !== undefined) sheet.getRange(added, col['Lines'] + 1).setValue(taken || '-');
   } finally {
     lock.releaseLock();
   }
@@ -166,14 +171,18 @@ function shortOfStock_(lines) {
   return null;
 }
 
-/** Lowers In Stock for each ordered piece, where you keep a count. Blank counts are left alone. */
+/**
+ * Lowers In Stock for each ordered piece, where you keep a count. Blank counts are left alone.
+ * Returns what was lowered, as "product-id:2, other-id:1".
+ */
 function takeStock_(lines) {
-  if (!lines.length) return;
+  if (!lines.length) return '';
   const sheet = productsTab_();
   const rows = sheet.getLastRow() - 1;
-  if (rows < 1) return;
+  if (rows < 1) return '';
   const col = columns_(sheet);
-  if (col['Product Id'] === undefined || col['In Stock'] === undefined) return;
+  if (col['Product Id'] === undefined || col['In Stock'] === undefined) return '';
+  const taken = [];
   const ids = sheet.getRange(2, col['Product Id'] + 1, rows, 1).getValues().map((r) => String(r[0]).trim());
   const stock = sheet.getRange(2, col['In Stock'] + 1, rows, 1);
   const counts = stock.getValues();
@@ -184,8 +193,10 @@ function takeStock_(lines) {
     const current = counts[i][0];
     if (current === '' || current === null || isNaN(Number(current))) return;
     counts[i][0] = Number(current) - qty;
+    taken.push(String(line.id) + ':' + qty);
   });
   stock.setValues(counts);
+  return taken.join(', ');
 }
 
 /**
@@ -466,6 +477,121 @@ function activityTab_() {
   return sheet;
 }
 
+/** For the admin Orders screens, which need the customer's details. Only reads. */
+function adminOrders_() {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(TAB);
+  if (!sheet || sheet.getLastRow() < 2) return { ok: true, orders: [] };
+  const col = columns_(sheet);
+  const orders = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues()
+    .map((r) => orderValues_((name) => (col[name] === undefined ? '' : r[col[name]])))
+    .filter((o) => o.orderNo)
+    .slice(-2000);
+  return { ok: true, orders: orders };
+}
+
+function orderValues_(cell) {
+  // A leading apostrophe only tells Sheets "this is text".
+  const text = (name) => String(cell(name)).replace(/^'/, '').trim();
+  const money = (name) => { const n = Number(cell(name)); return isFinite(n) ? n : 0; };
+  const raw = cell('Date');
+  const date = Object.prototype.toString.call(raw) === '[object Date]' ? raw : new Date(String(raw));
+  return {
+    orderNo: text('Order no'),
+    date: isNaN(date.getTime()) ? '' : date.toISOString(),
+    status: text('Status'),
+    name: text('Name'),
+    mobile: text('Mobile'),
+    email: text('Email'),
+    district: text('District'),
+    area: text('Area / thana'),
+    address: text('Address'),
+    items: text('Items'),
+    subtotal: money('Subtotal'),
+    delivery: money('Delivery'),
+    discount: money('Discount'),
+    total: money('Total'),
+    coupon: text('Coupon'),
+    payment: text('Payment'),
+    note: text('Customer note'),
+    message: text('Message for customer'),
+    lines: text('Lines'),
+    stockReturned: /^yes$/i.test(text('Stock returned')),
+  };
+}
+
+/**
+ * Changes an order's status and customer message, and puts its stock back (or takes it again).
+ * `expected` holds what the admin saw: if the sheet differs now, nothing is written.
+ */
+function updateOrder_(orderNo, expected, changes, stock, by) {
+  const names = { status: 'Status', message: 'Message for customer' };
+  const fields = Object.keys(changes);
+  if (!orderNo || ['', 'return', 'take'].indexOf(stock) < 0 || (!fields.length && !stock) || fields.some((f) => !names.hasOwnProperty(f))) return { error: 'bad request' };
+  if (fields.indexOf('status') >= 0 && STATUSES.indexOf(changes.status) < 0) return { error: 'invalid', field: 'status' };
+  if (fields.indexOf('message') >= 0 && (typeof changes.message !== 'string' || changes.message.length > 300)) return { error: 'invalid', field: 'message' };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sheet = ordersTab_();
+    const col = columns_(sheet);
+    if (col['Order no'] === undefined || fields.some((f) => col[names[f]] === undefined)) return { error: 'missing column' };
+    const rows = sheet.getLastRow() - 1;
+    if (rows < 1) return { error: 'not found' };
+    const values = sheet.getRange(2, 1, rows, sheet.getLastColumn()).getValues();
+    const matches = values.map((r, i) => i).filter((i) => String(values[i][col['Order no']]).trim() === orderNo);
+    if (!matches.length) return { error: 'not found' };
+    if (matches.length > 1) return { error: 'duplicate' };
+    const at = matches[0];
+    const read = () => orderValues_((name) => (col[name] === undefined ? '' : values[at][col[name]]));
+    const current = read();
+    if (fields.some((f) => expected[f] !== current[f]) || (stock && (expected.status !== current.status || expected.stockReturned !== current.stockReturned))) {
+      return { error: 'conflict', order: current };
+    }
+    const status = fields.indexOf('status') >= 0 ? changes.status : current.status;
+    const closed = status === 'Cancelled' || status === 'Returned';
+    const pieces = current.lines.split(',').map((part) => part.trim().match(/^(.+):(\d+)$/)).filter(Boolean)
+      .map((m) => ({ id: m[1], quantity: Number(m[2]) }));
+    if (stock === 'return' && (!closed || current.stockReturned || !pieces.length)) return { error: 'stock not allowed' };
+    if (stock === 'take' && (closed || !current.stockReturned || !pieces.length)) return { error: 'stock not allowed' };
+
+    const log = activityTab_();
+    const record = (what, field, from, to) => log.appendRow([new Date(), text_(by), text_(what), field, typeof from === 'string' ? text_(from) : from, typeof to === 'string' ? text_(to) : to]);
+    const write = (name, value) => {
+      sheet.getRange(at + 2, col[name] + 1).setValue(value);
+      values[at][col[name]] = value;
+    };
+    fields.forEach((f) => {
+      const next = String(changes[f]).trim();
+      if (next === current[f]) return;
+      write(names[f], text_(next));
+      record(orderNo, f === 'status' ? 'Order status' : 'Customer message', current[f], next);
+    });
+    const moved = [];
+    const skipped = [];
+    if (stock) {
+      const products = productsTab_();
+      const pc = columns_(products);
+      const count = products.getLastRow() - 1;
+      const ids = count < 1 ? [] : products.getRange(2, pc['Product Id'] + 1, count, 1).getValues().map((r) => String(r[0]).trim());
+      pieces.forEach((piece) => {
+        const i = ids.indexOf(piece.id);
+        const cell = i < 0 ? null : products.getRange(i + 2, pc['In Stock'] + 1);
+        const have = cell ? cell.getValues()[0][0] : '';
+        // Removed products and blank (uncounted) stock are left alone.
+        if (!cell || have === '' || isNaN(Number(have))) { skipped.push(piece.id); return; }
+        const after = Number(have) + (stock === 'return' ? piece.quantity : -piece.quantity);
+        cell.setValue(after);
+        record(piece.id, 'In Stock (order ' + orderNo + ')', Number(have), after);
+        moved.push({ id: piece.id, from: Number(have), to: after });
+      });
+      write('Stock returned', stock === 'return' ? 'Yes' : '');
+    }
+    return { ok: true, order: read(), moved: moved, skipped: skipped };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function ordersTab_() {
   const book = SpreadsheetApp.getActive();
   let sheet = book.getSheetByName(TAB);
@@ -483,7 +609,7 @@ function ordersTab_() {
   }
   // Columns added by later versions go on the end, so your own layout is untouched.
   const have = columns_(sheet);
-  ['Discount', 'Coupon', 'Account'].forEach((name) => {
+  ['Discount', 'Coupon', 'Account', 'Lines', 'Stock returned'].forEach((name) => {
     if (have[name] === undefined) sheet.getRange(1, sheet.getLastColumn() + 1).setValue(name).setFontWeight('bold');
   });
   return sheet;
