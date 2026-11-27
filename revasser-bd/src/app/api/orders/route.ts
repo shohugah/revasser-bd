@@ -4,6 +4,7 @@ import { toWhatsAppNumber } from "@/lib/whatsapp";
 import { callOrderSheet, clean, newOrderNo, ordersReady } from "@/lib/orders";
 import { priceBag } from "@/lib/bag";
 import { checkCoupon } from "@/lib/coupon";
+import { currentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +85,8 @@ export async function POST(req: NextRequest) {
         payment: wallet ? `${wallet} · TrxID ${trxId} (check before shipping)` : "Cash on Delivery",
         discount,
         coupon,
+        // The verified Google email, set by the server only.
+        account: (await currentUser())?.email ?? "",
         items: lines
           .map((l) => `${l.quantity} × ${l.product.name}${l.option ? ` (${l.option})` : ""} @ Tk ${l.product.price}`)
           .join("\n"),
