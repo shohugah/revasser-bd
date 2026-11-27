@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/category/trending-products", destination: "/shop/best-sellers", permanent: true },
       { source: "/category/:slug", destination: "/shop/:slug", permanent: true },
-      { source: "/favicon.ico", destination: "/icon.svg", permanent: false },
+      { source: "/favicon.ico", destination: "/icon.png", permanent: false },
     ];
   },
   async headers() {
