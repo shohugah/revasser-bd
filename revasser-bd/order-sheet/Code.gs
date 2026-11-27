@@ -63,10 +63,13 @@ function doPost(e) {
   }
   const secret = PropertiesService.getScriptProperties().getProperty('SECRET');
   if (!secret || body.secret !== secret) return reply_({ error: 'forbidden' });
-  if (body.action === 'report') {
+  // Admin dashboard actions need the second secret as well.
+  if (['report', 'admin_products', 'update_product'].indexOf(body.action) >= 0) {
     const admin = PropertiesService.getScriptProperties().getProperty('ADMIN_SECRET');
     if (!admin || body.admin !== admin) return reply_({ error: 'admin forbidden' });
-    return reply_(report_());
+    if (body.action === 'report') return reply_(report_());
+    if (body.action === 'admin_products') return reply_(adminProducts_());
+    return reply_(updateProduct_(String(body.id || ''), body.expected || {}, body.changes || {}, String(body.by || '')));
   }
   if (body.action === 'create') return reply_(create_(body.order || {}));
   if (body.action === 'track') return reply_(track_(String(body.orderNo || ''), String(body.phone || '')));
@@ -354,6 +357,113 @@ function report_() {
     show: !/^(no|n|false|0|hide|hidden)$/i.test(text(c('Show on website'))),
   }));
   return { ok: true, orders: orders, products: products };
+}
+
+// The product cells the admin dashboard may change. Cost Price, Margin and Notes are never touched.
+const EDITABLE = {
+  name: 'Product Name', regular: 'Regular Price', promo: 'Promo Price', stock: 'In Stock',
+  availability: 'Availability', show: 'Show on website',
+};
+
+function productValues_(cell) {
+  return {
+    name: String(cell('Product Name')).trim(),
+    regular: positive_(cell('Regular Price')),
+    promo: positive_(cell('Promo Price')),
+    stock: count_(cell('In Stock')),
+    availability: String(cell('Availability')).trim(),
+    show: !/^(no|n|false|0|hide|hidden)$/i.test(String(cell('Show on website')).trim()),
+  };
+}
+
+/** For the admin Products screen. Only reads. */
+function adminProducts_() {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(PRODUCTS_TAB);
+  if (!sheet || sheet.getLastRow() < 2) return { ok: true, products: [] };
+  const col = columns_(sheet);
+  const products = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues().map((r) => {
+    const cell = (name) => (col[name] === undefined ? '' : r[col[name]]);
+    const p = productValues_(cell);
+    p.id = String(cell('Product Id')).trim();
+    p.category = String(cell('Category')).trim();
+    p.image = String(cell('Image')).trim();
+    return p;
+  }).filter((p) => p.id);
+  return { ok: true, products: products };
+}
+
+function validProduct_(p) {
+  const whole = (v, min, max) => v === null || (typeof v === 'number' && Math.floor(v) === v && v >= min && v <= max);
+  if (typeof p.name !== 'string' || !p.name.trim() || p.name.length > 120 || /[\u0000-\u001f]/.test(p.name)) return 'name';
+  if (!whole(p.regular, 1, 10000000)) return 'regular';
+  if (!whole(p.promo, 1, 10000000) || (p.promo !== null && (p.regular === null || p.promo >= p.regular))) return 'promo';
+  // Below 0 happens when pre-orders are taken with nothing in stock.
+  if (!whole(p.stock, -10000, 100000)) return 'stock';
+  if (p.availability !== '' && AVAILABILITY.indexOf(p.availability) < 0) return 'availability';
+  if (typeof p.show !== 'boolean') return 'show';
+  return '';
+}
+
+/**
+ * Changes some cells of one product. `expected` holds what the admin saw: if a cell being changed
+ * is different now (for example an order lowered the stock), nothing is written.
+ */
+function updateProduct_(id, expected, changes, by) {
+  const fields = Object.keys(changes).filter((f) => EDITABLE.hasOwnProperty(f));
+  if (!id || !fields.length || fields.length !== Object.keys(changes).length) return { error: 'bad request' };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sheet = productsTab_();
+    const col = columns_(sheet);
+    if (col['Product Id'] === undefined || fields.some((f) => col[EDITABLE[f]] === undefined)) return { error: 'missing column' };
+    const rows = sheet.getLastRow() - 1;
+    if (rows < 1) return { error: 'not found' };
+    const values = sheet.getRange(2, 1, rows, sheet.getLastColumn()).getValues();
+    const matches = values.map((r, i) => i).filter((i) => String(values[i][col['Product Id']]).trim() === id);
+    if (!matches.length) return { error: 'not found' };
+    if (matches.length > 1) return { error: 'duplicate' };
+    const at = matches[0];
+    const current = productValues_((name) => (col[name] === undefined ? '' : values[at][col[name]]));
+    current.id = id;
+    if (fields.some((f) => expected[f] !== current[f])) return { error: 'conflict', product: current };
+
+    const next = Object.assign({}, current);
+    fields.forEach((f) => { next[f] = typeof changes[f] === 'string' ? changes[f].trim() : changes[f]; });
+    // Cells you typed yourself and that are not being changed are not judged.
+    const check = Object.assign({ regular: null, promo: null }, next);
+    if (fields.indexOf('name') < 0) check.name = 'unchanged';
+    if (fields.indexOf('availability') < 0) check.availability = '';
+    if (fields.indexOf('stock') < 0) check.stock = null;
+    if (fields.indexOf('regular') < 0 && fields.indexOf('promo') < 0) { check.regular = null; check.promo = null; }
+    const wrong = validProduct_(check);
+    if (wrong) return { error: 'invalid', field: wrong };
+
+    const log = activityTab_();
+    fields.forEach((f) => {
+      if (next[f] === current[f]) return;
+      const show = (v) => (typeof v === 'boolean' ? (v ? 'Yes' : 'No') : v === null ? '' : v);
+      const write = typeof next[f] === 'string' ? text_(next[f]) : show(next[f]);
+      sheet.getRange(at + 2, col[EDITABLE[f]] + 1).setValue(write);
+      const kept = (v) => (typeof v === 'string' ? text_(v) : v);
+      log.appendRow([new Date(), text_(by), id, EDITABLE[f], kept(show(current[f])), kept(show(next[f]))]);
+    });
+    return { ok: true, product: next };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Who changed what in the admin dashboard, and when. */
+function activityTab_() {
+  const book = SpreadsheetApp.getActive();
+  let sheet = book.getSheetByName('Activity');
+  if (!sheet) {
+    sheet = book.insertSheet('Activity');
+    sheet.getRange(1, 1, 1, 6).setValues([['Date', 'Admin', 'Product Id', 'Field', 'Old value', 'New value']]).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
 }
 
 function ordersTab_() {
