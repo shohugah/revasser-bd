@@ -39,7 +39,7 @@ export function ListingFallback({ products }: { products: Product[] }) {
 export function Empty({ title, text, action }: { title: string; text: string; action: { label: string; href: string } }) {
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center py-20 text-center">
-      <img src="/brand/logo/monogram-gold.svg" alt="" className="h-20 w-20" />
+      <img src="/brand/logo/mark-gold.png" alt="" className="h-20 w-20" />
       <h2 className="display-md mt-8">{title}</h2>
       <p className="mt-4 text-muted">{text}</p>
       <Link href={action.href} className="btn-dark mt-8">{action.label}</Link>
@@ -68,7 +68,7 @@ export function Listing({ products, labels, emptyAction }: Props) {
     { key: "category", name: "Department", pick: (p: Product) => [p.categoryName] },
     { key: "colour", name: "Colour", pick: (p: Product) => p.colours.map((c) => c.name) },
     { key: "size", name: "Size", pick: (p: Product) => p.sizes },
-    { key: "availability", name: "Availability", pick: (p: Product) => [p.availability || "Confirm by phone"] },
+    { key: "availability", name: "Availability", pick: (p: Product) => [p.availability === "Sold out" ? "Stock Out" : p.availability || "Confirm by phone"] },
     { key: "edit", name: "Edit", pick: (p: Product) => [p.isNew ? "New in" : "", p.bestSeller ? "Best sellers" : "", p.compareAt ? "Reduced" : ""] },
     {
       key: "price",

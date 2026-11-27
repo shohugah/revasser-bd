@@ -6,7 +6,7 @@ import { useStore } from "../StoreProvider";
 
 export function Price({ product, className = "" }: { product: Product; className?: string }) {
   const { labels } = useStore().data;
-  if (product.price === null) return <p className={`text-muted ${className}`}>{labels.priceOnRequest}</p>;
+  if (product.price === null) return <p className={`text-muted ${className}`}>{product.availability === "Sold out" ? "Stock Out" : labels.priceOnRequest}</p>;
   return (
     <p className={`flex flex-wrap items-baseline gap-x-3 ${className}`}>
       <span><span className="sr-only">Price </span>{taka(product.price)}</span>

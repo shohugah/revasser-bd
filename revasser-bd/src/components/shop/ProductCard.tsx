@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { discount, productHref } from "@/lib/format";
+import { discount, isLowStock, productHref } from "@/lib/format";
 import { useStore } from "../StoreProvider";
 import { Photo } from "../ui/Photo";
 import { Price } from "./Price";
@@ -15,7 +15,7 @@ export function ProductCard({ product: p, sizes = "(min-width:1024px) 25vw, 50vw
   const wished = isWished(p.id);
   const Title = heading;
   const flag =
-    p.availability === "Sold out" ? "Sold out"
+    p.availability === "Sold out" ? "Stock Out"
     : p.compareAt && p.price !== null ? `−${discount(p.price, p.compareAt)}%`
     : p.availability === "Pre-order" ? "Pre-order"
     : p.isNew ? "New in" : "";
@@ -46,6 +46,7 @@ export function ProductCard({ product: p, sizes = "(min-width:1024px) 25vw, 50vw
         <Link href={productHref(p.id)} className="hover:underline hover:underline-offset-4">{p.name}</Link>
       </Title>
       <Price product={p} className="mt-1 text-xs sm:text-sm" />
+      {isLowStock(p) && <p className="mt-1 inline-block bg-red-700 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-white">Low Stock</p>}
       {p.colours.length > 0 && <p className="text-xs text-muted">{p.colours.map((c) => c.name).join(", ")}</p>}
     </article>
   );

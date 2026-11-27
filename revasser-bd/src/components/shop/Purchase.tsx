@@ -54,7 +54,7 @@ export function Purchase({ product: p, compact, onColour }: { product: Product; 
       {error && <p role="alert" className="mb-3 text-sm text-red-800">{error}</p>}
       <div className="flex gap-2">
         <button onClick={submit} disabled={soldOut || unpriced} className="btn-dark flex-1">
-          {soldOut ? "Sold out" : unpriced ? data.labels.priceOnRequest : data.labels.addButton || "Add to bag"}
+          {soldOut ? "Stock Out" : unpriced ? data.labels.priceOnRequest : data.labels.addButton || "Add to bag"}
         </button>
         <button onClick={() => toggleWish(p)} aria-pressed={wished} aria-label={`Save ${p.name} to wishlist`} className="btn-line w-14 shrink-0 px-0">
           <Heart className={`h-[18px] w-[18px] ${wished ? "fill-current" : ""}`} strokeWidth={1.25} />
