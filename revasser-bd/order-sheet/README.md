@@ -60,4 +60,7 @@ The **Orders** screens show customer details to the signed-in admin and change o
 Message for customer and, when you ask, product stock. Two columns are added at the end of the
 Orders tab: **Lines** (what was taken from stock) and **Stock returned**.
 
+The **Coupons** screen adds and changes codes in the **Coupons** tab (Code, Type, Value, Minimum
+order, Active). It never deletes or renames a code; switch it off instead.
+
 Pack and ship an order only after you have confirmed it by phone.

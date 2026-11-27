@@ -64,12 +64,14 @@ function doPost(e) {
   const secret = PropertiesService.getScriptProperties().getProperty('SECRET');
   if (!secret || body.secret !== secret) return reply_({ error: 'forbidden' });
   // Admin dashboard actions need the second secret as well.
-  if (['report', 'admin_products', 'update_product', 'admin_orders', 'update_order'].indexOf(body.action) >= 0) {
+  if (['report', 'admin_products', 'update_product', 'admin_orders', 'update_order', 'admin_coupons', 'save_coupon'].indexOf(body.action) >= 0) {
     const admin = PropertiesService.getScriptProperties().getProperty('ADMIN_SECRET');
     if (!admin || body.admin !== admin) return reply_({ error: 'admin forbidden' });
     if (body.action === 'report') return reply_(report_());
     if (body.action === 'admin_products') return reply_(adminProducts_());
     if (body.action === 'admin_orders') return reply_(adminOrders_());
+    if (body.action === 'admin_coupons') return reply_(adminCoupons_());
+    if (body.action === 'save_coupon') return reply_(saveCoupon_(String(body.code || ''), body.expected || null, body.next || {}, String(body.by || '')));
     if (body.action === 'update_order') return reply_(updateOrder_(String(body.orderNo || ''), body.expected || {}, body.changes || {}, String(body.stock || ''), String(body.by || '')));
     return reply_(updateProduct_(String(body.id || ''), body.expected || {}, body.changes || {}, String(body.by || '')));
   }
@@ -460,6 +462,85 @@ function updateProduct_(id, expected, changes, by) {
       log.appendRow([new Date(), text_(by), id, EDITABLE[f], kept(show(current[f])), kept(show(next[f]))]);
     });
     return { ok: true, product: next };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** For the admin Coupons screen. Only reads: it never creates the tab or changes cells. */
+function adminCoupons_() {
+  const sheet = SpreadsheetApp.getActive().getSheetByName('Coupons');
+  if (!sheet || sheet.getLastRow() < 2) return { ok: true, coupons: [] };
+  const col = columns_(sheet);
+  const coupons = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues()
+    .map((r) => couponValues_((name) => (col[name] === undefined ? '' : r[col[name]])))
+    .filter((c) => c.code);
+  return { ok: true, coupons: coupons };
+}
+
+function couponValues_(cell) {
+  return {
+    code: String(cell('Code')).trim().toUpperCase(),
+    type: String(cell('Type')).trim().toLowerCase(),
+    value: Number(cell('Value')) || 0,
+    minimum: Number(cell('Minimum order')) || 0,
+    active: String(cell('Active')).trim().toLowerCase() === 'yes',
+  };
+}
+
+/**
+ * Adds a coupon (`expected` is null) or changes one. Codes are never deleted or renamed.
+ * `expected` holds what the admin saw: if the row differs now, nothing is written.
+ */
+function saveCoupon_(code, expected, next, by) {
+  const names = { type: 'Type', value: 'Value', minimum: 'Minimum order', active: 'Active' };
+  const fields = Object.keys(names);
+  const whole = (v, min, max) => typeof v === 'number' && Math.floor(v) === v && v >= min && v <= max;
+  if (typeof next !== 'object' || Object.keys(next).some((f) => !names.hasOwnProperty(f))) return { error: 'bad request' };
+  if (typeof next.active !== 'boolean') return { error: 'invalid', field: 'active' };
+  // Switching a code off is always allowed, even if its other cells were typed wrongly by hand.
+  const offOnly = !!expected && !next.active && ['type', 'value', 'minimum'].every((f) => next[f] === expected[f]);
+  if (!offOnly) {
+    if (next.type !== 'percent' && next.type !== 'taka') return { error: 'invalid', field: 'type' };
+    if (!whole(next.value, 1, next.type === 'percent' ? 100 : 1000000)) return { error: 'invalid', field: 'value' };
+    if (!whole(next.minimum, 0, 10000000)) return { error: 'invalid', field: 'minimum' };
+  }
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sheet = couponsTab_();
+    const col = columns_(sheet);
+    if (col['Code'] === undefined || fields.some((f) => col[names[f]] === undefined)) return { error: 'missing column' };
+    const rows = sheet.getLastRow() - 1;
+    const values = rows < 1 ? [] : sheet.getRange(2, 1, rows, sheet.getLastColumn()).getValues();
+    const matches = values.map((r, i) => i).filter((i) => String(values[i][col['Code']]).trim().toUpperCase() === code);
+    if (matches.length > 1) return { error: 'duplicate' };
+    const read = (r) => couponValues_((name) => (col[name] === undefined ? '' : r[col[name]]));
+    const current = matches.length ? read(values[matches[0]]) : null;
+    const cellFor = (f, v) => (f === 'active' ? (v ? 'Yes' : 'No') : v);
+    const log = activityTab_();
+    const record = (field, from, to) => log.appendRow([new Date(), text_(by), text_(code), field, from, to]);
+
+    if (!expected) {
+      // New codes start with a letter, so a code can never be read as a formula or a number.
+      if (!/^[A-Z][A-Z0-9_-]{1,29}$/.test(code)) return { error: 'invalid', field: 'code' };
+      if (current) return { error: 'exists', coupon: current };
+      const row = sheet.getLastRow() + 1;
+      // Plain text, so a code such as DEC25 is not turned into a date.
+      sheet.getRange(row, col['Code'] + 1).setNumberFormat('@').setValue(code);
+      fields.forEach((f) => sheet.getRange(row, col[names[f]] + 1).setValue(cellFor(f, next[f])));
+      record('Coupon created', '', next.type + ' ' + next.value + ', minimum ' + next.minimum + ', ' + (next.active ? 'on' : 'off'));
+    } else {
+      if (!current) return { error: 'not found' };
+      if (fields.some((f) => expected[f] !== current[f])) return { error: 'conflict', coupon: current };
+      fields.forEach((f) => {
+        if (next[f] === current[f]) return;
+        sheet.getRange(matches[0] + 2, col[names[f]] + 1).setValue(cellFor(f, next[f]));
+        const was = cellFor(f, current[f]);
+        record('Coupon ' + names[f], typeof was === 'string' ? text_(was) : was, cellFor(f, next[f]));
+      });
+    }
+    return { ok: true, coupon: Object.assign({ code: code }, next) };
   } finally {
     lock.releaseLock();
   }
