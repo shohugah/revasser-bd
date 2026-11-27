@@ -48,3 +48,5 @@ The dashboard at `/admin` reads orders and stock. It does not change the sheet.
 Never paste either secret into a chat or a file in this repository.
 
 The dashboard reads the sheet each time you open it, so reload to see new orders.
+
+If the dashboard says the secret was refused, copy ADMIN_SECRET again (not SECRET, not the Script ID).
