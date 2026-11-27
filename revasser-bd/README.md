@@ -22,3 +22,5 @@ A changed setting only takes effect after the next deployment.
 Adding products and photos in `/admin` needs `GITHUB_TOKEN` in Vercel: a fine-grained GitHub key for
 this repository only, with Contents read and write. The live site saves to `main`; a test copy saves
 only to its own branch.
+
+Changes made in the admin appear after the rebuild finishes.
