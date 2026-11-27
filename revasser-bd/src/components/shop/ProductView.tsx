@@ -40,7 +40,8 @@ export function ProductView({ product: p, children }: { product: Product; childr
 
   return (
     <div className="grid gap-x-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:gap-x-24">
-      <div className="lg:grid lg:grid-cols-[5rem_minmax(0,1fr)] lg:items-start lg:gap-4">
+      {/* The narrow first column is for thumbnails, which only appear with two or more photos. */}
+      <div className={images.length > 1 ? "lg:grid lg:grid-cols-[5rem_minmax(0,1fr)] lg:items-start lg:gap-4" : ""}>
         <div className="relative -mx-5 sm:mx-0 lg:order-2">
           <ul
             ref={track}

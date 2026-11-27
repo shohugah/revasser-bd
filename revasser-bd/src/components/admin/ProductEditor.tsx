@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AVAILABILITY, FIELDS, problemWith, shopState, type Field, type SheetProduct } from "@/lib/product-edit";
 
@@ -51,6 +52,7 @@ export function ProductEditor({ rows }: { rows: Row[] }) {
               <p className="w-20 text-sm tabular-nums">Stock: {p.stock ?? "—"}</p>
               <p className={`w-28 text-sm ${state === "Stock Out" ? "text-[#b32d2e]" : state === "Low Stock" ? "text-[#8a5700]" : state === "Hidden" ? "text-[#646970]" : "text-[#007017]"}`}>{state}</p>
               <button onClick={() => { setSaved(""); setEditing(p); }} className={secondary} aria-label={`Edit ${p.name || p.id}`}>Edit</button>
+              {p.onSite && <Link href={`/admin/products/${p.id}`} className={`${secondary} flex items-center`} aria-label={`Photos and details of ${p.name || p.id}`}>Photos &amp; details</Link>}
             </li>
           );
         })}
