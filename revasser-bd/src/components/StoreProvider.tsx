@@ -19,7 +19,7 @@ export interface SavedOrder {
 export interface Details { customerName: string; phone: string; email: string; area: string; address: string; location: "inside" | "outside" }
 export interface SavedAddress { tag: string; details: Details }
 interface Saved { bag: BagLine[]; wishlist: string[]; recent: string[]; orders: SavedOrder[]; addresses: SavedAddress[] }
-type PanelName = "" | "menu" | "search" | "bag" | "quick";
+type PanelName = "" | "menu" | "search" | "bag" | "quick" | "signin";
 
 const EMPTY: Saved = { bag: [], wishlist: [], recent: [], orders: [], addresses: [] };
 
