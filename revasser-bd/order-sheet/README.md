@@ -53,3 +53,5 @@ If the dashboard says the secret was refused, copy ADMIN_SECRET again (not SECRE
 
 The **Products** screen changes only Product Name, Regular Price, Promo Price, In Stock, Availability
 and Show on website. Each change is recorded in an **Activity** tab (created on the first change).
+
+Test copies use their own sheet, set with branch-only Preview settings in Vercel.
