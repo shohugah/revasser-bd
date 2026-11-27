@@ -18,3 +18,7 @@ out on the next click (after the new setting is deployed). Admin sessions are si
 made from `ORDERS_SECRET`, so changing that secret signs everyone out.
 
 A changed setting only takes effect after the next deployment.
+
+Adding products and photos in `/admin` needs `GITHUB_TOKEN` in Vercel: a fine-grained GitHub key for
+this repository only, with Contents read and write. The live site saves to `main`; a test copy saves
+only to its own branch.
