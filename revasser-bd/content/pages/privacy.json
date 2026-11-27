@@ -12,6 +12,10 @@
       "text": "When you place an order, the details you type are saved in our private order sheet, kept in our Google account, so we can confirm, deliver and support your order. We do not sell them, and share only what a delivery service needs to bring your order to you."
     },
     {
+      "title": "Signing in with Google",
+      "text": "Signing in is optional. Google tells us your name and email address, which we use to fill in checkout and to show you your own orders. We never see your Google password. A cookie keeps you signed in for up to 30 days, until you sign out."
+    },
+    {
       "title": "Website hosting",
       "text": "Our hosting provider processes standard technical information, such as IP addresses, to deliver and protect the site."
     },
