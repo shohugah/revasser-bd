@@ -1,0 +1,20 @@
+{
+  "price": null,
+  "salePrice": null,
+  "availability": "Confirm by phone",
+  "reviews": [],
+  "order": 9999,
+  "name": "Test Ring Check",
+  "category": "jewellery-accessories",
+  "photo": "",
+  "photoUrl": "/uploads/test-ring-check-2501ac79.jpg",
+  "morePhotos": [],
+  "morePhotoUrls": [],
+  "description": "",
+  "details": [],
+  "colours": [],
+  "sizes": [],
+  "isNew": true,
+  "bestSeller": false,
+  "visible": true
+}
