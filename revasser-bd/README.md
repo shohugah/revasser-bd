@@ -16,3 +16,5 @@ the emails listed in the `ADMIN_EMAILS` setting in Vercel (comma separated) can 
 those emails in this repository. A sign-in lasts 8 hours. Removing an email from the list locks it
 out on the next click (after the new setting is deployed). Admin sessions are signed with a key
 made from `ORDERS_SECRET`, so changing that secret signs everyone out.
+
+A changed setting only takes effect after the next deployment.
