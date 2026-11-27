@@ -52,7 +52,7 @@ export default async function Dashboard() {
                 <tbody>
                   {recent.map((o) => (
                     <tr key={o.orderNo} className="border-b border-[#f0f0f1]">
-                      <td className="whitespace-normal break-all py-2 pr-4 sm:break-normal">{o.orderNo}</td>
+                      <td className="whitespace-normal break-all py-2 pr-4 sm:break-normal"><Link href={`/admin/orders/${encodeURIComponent(o.orderNo)}`} prefetch={false} className="text-[#2271b1] underline">{o.orderNo}</Link></td>
                       <td className="py-2 pr-4">{orderDay(o) ? dayLabel(orderDay(o)) : "—"}</td>
                       <td className="py-2 pr-4">{statusName(o.status)}</td>
                       <td className="hidden py-2 pr-4 sm:table-cell">{o.district || "—"}</td>
