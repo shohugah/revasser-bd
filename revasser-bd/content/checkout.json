@@ -80,5 +80,6 @@
   "trackTitle": "Track Your Order",
   "bkash": true,
   "nagad": true,
-  "payNumber": "01310140434"
+  "payNumber": "01310140434",
+  "googleClientId": "511228803377-3plrulpq1smfaj2p9bl0mbhik000f2qk.apps.googleusercontent.com"
 }
