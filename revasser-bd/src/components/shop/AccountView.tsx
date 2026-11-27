@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useStore } from "../StoreProvider";
 
 export function AccountView() {
-  const { ready, orders, details, forget, wishlist, count, open } = useStore();
+  const { ready, orders, addresses, forget, wishlist, count, open } = useStore();
   const [confirming, setConfirming] = useState(false);
   if (!ready) return <p role="status" className="py-20 text-muted">Loading…</p>;
   return (
@@ -47,11 +47,13 @@ export function AccountView() {
         </section>
         <section>
           <h2 className="text-2xl">Delivery details</h2>
-          <p className="mt-3 text-sm text-muted">
-            {details
-              ? [details.customerName, details.phone, details.address, details.area, details.district].filter(Boolean).join(", ")
-              : "Tick “Remember these details” at checkout to keep them here."}
-          </p>
+          {addresses.length ? (
+            <ul className="mt-3 space-y-2 text-sm text-muted">
+              {addresses.map(({ tag, details: d }) => <li key={tag}><span className="text-ink">{tag}:</span> {[d.customerName, d.phone, d.address, d.area].filter(Boolean).join(", ")}</li>)}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-muted">Tick “Save this address” at checkout to keep it here.</p>
+          )}
         </section>
         <section className="border-t border-ink/10 pt-6">
           <p className="text-sm text-muted">There is no password and no online account. Everything on this page stays in this browser and does not follow you to another device.</p>

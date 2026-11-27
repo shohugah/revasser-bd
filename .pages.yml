@@ -968,6 +968,16 @@ content:
             label: Take website orders (Cash on Delivery)
             type: boolean
             description: Switch off to pause website ordering.
+          - name: bkash
+            label: Accept bKash (Send Money)
+            type: boolean
+          - name: nagad
+            label: Accept Nagad (Send Money)
+            type: boolean
+          - name: payNumber
+            label: bKash and Nagad number
+            type: string
+            description: Customers send money here and type the Transaction ID. Check it before you ship.
           - name: confirmButton
             label: Place order button text
             type: string

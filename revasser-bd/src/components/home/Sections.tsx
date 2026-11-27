@@ -292,7 +292,7 @@ function Join({ content: { join, checkout } }: Props) {
     <section className="bg-soft">
       <div className="shell flex flex-col items-center gap-8 py-16 text-center lg:flex-row lg:justify-between lg:py-20 lg:text-left">
         <div className="flex flex-col items-center gap-6 lg:flex-row lg:gap-10">
-          <img src="/brand/logo/monogram-ink.svg" alt="" loading="lazy" className="h-20 w-20" />
+          <img src="/brand/logo/mark-ink.png" alt="" loading="lazy" className="h-20 w-20" />
           <div>
             <h2 className="display-md">{join.title}</h2>
             <p className="mt-3 max-w-md text-muted">{join.text}</p>

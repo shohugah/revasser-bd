@@ -76,6 +76,9 @@
     "Thakurgaon"
   ],
   "cod": true,
-  "confirmButton": "Place order",
-  "trackTitle": "Track Your Order"
+  "confirmButton": "Place Order",
+  "trackTitle": "Track Your Order",
+  "bkash": true,
+  "nagad": true,
+  "payNumber": "01310140434"
 }

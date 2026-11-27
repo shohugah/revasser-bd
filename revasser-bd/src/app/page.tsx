@@ -28,7 +28,7 @@ export default async function HomePage() {
             "@type": "Organization",
             name: seo.siteName,
             url: SITE,
-            logo: absolute("/brand/logo/icon.svg"),
+            logo: absolute("/brand/logo/icon.png"),
             email: content.footer.supportEmail || undefined,
             telephone: content.checkout.whatsapp ? `+${content.checkout.whatsapp}` : undefined,
             sameAs: content.footer.socials.map((s) => s.url),

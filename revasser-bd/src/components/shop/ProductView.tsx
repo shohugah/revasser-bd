@@ -1,5 +1,7 @@
 "use client";
 
+import { isLowStock } from "@/lib/format";
+
 import { useEffect, useRef, useState } from "react";
 import { X, ZoomIn } from "lucide-react";
 import type { Product } from "@/lib/types";
@@ -12,7 +14,7 @@ import { Purchase } from "./Purchase";
 const AVAILABILITY: Record<string, string> = {
   "In stock": "In stock",
   "Pre-order": "Available on pre-order",
-  "Sold out": "Currently sold out",
+  "Sold out": "Stock Out",
   "Confirm by phone": "We confirm availability by phone after you order",
   "": "We confirm availability by phone after you order",
 };
@@ -83,7 +85,7 @@ export function ProductView({ product: p, children }: { product: Product; childr
         <Price product={p} className="mt-4 text-lg" />
         <p className="mt-2 flex items-center gap-2.5 text-sm">
           <span className={`h-1.5 w-1.5 rounded-full ${p.availability === "In stock" ? "bg-green-800" : p.availability === "Sold out" ? "bg-red-800" : "bg-accent"}`} aria-hidden="true" />
-          {AVAILABILITY[p.availability]}
+          {AVAILABILITY[p.availability]}{isLowStock(p) && <span className="bg-red-700 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-white">Low Stock</span>}
         </p>
         {p.description && <p className="mt-6 max-w-lg whitespace-pre-line text-muted">{p.description}</p>}
         <Purchase product={p} onColour={(image) => go(images.indexOf(image))} />

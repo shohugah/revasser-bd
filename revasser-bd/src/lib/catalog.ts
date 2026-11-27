@@ -7,6 +7,7 @@ import { callOrderSheet, ordersReady } from "./orders";
 // visibility. Everything else (photos, words, categories) still comes from Pages CMS.
 
 export interface SheetRow {
+  name: string;
   regular: number | null;
   promo: number | null;
   stock: number | null;
@@ -27,6 +28,7 @@ function clean(value: unknown): Record<string, SheetRow> {
   for (const [id, raw] of Object.entries(rows as Record<string, Record<string, unknown>>)) {
     if (!raw || typeof raw !== "object") continue;
     out[id] = {
+      name: typeof raw.name === "string" ? raw.name.trim().slice(0, 120) : "",
       regular: money(raw.regular),
       promo: money(raw.promo),
       stock: typeof raw.stock === "number" && Number.isFinite(raw.stock) ? Math.floor(raw.stock) : null,
@@ -69,18 +71,19 @@ export async function sheetFor(products: Product[]): Promise<Record<string, Shee
   });
 }
 
-/** Applies one sheet row to one product. Rows missing from the sheet leave the product as it is. */
+/**
+ * Applies one sheet row to one product. The sheet is the live record: an empty or zero
+ * price or stock means the piece is out of stock. Rows not in the sheet are left as they are.
+ */
 export function applyRow(p: Product, row: SheetRow | undefined): Product | null {
   if (!row) return p;
   if (!row.show) return null;
   const next = { ...p, stock: row.stock };
-  if (row.regular) {
-    const onSale = row.promo !== null && row.promo < row.regular;
-    next.price = onSale ? row.promo : row.regular;
-    next.compareAt = onSale ? row.regular : null;
-  }
+  if (row.name) next.name = row.name;
+  const onSale = !!row.regular && row.promo !== null && row.promo < row.regular;
+  next.price = onSale ? row.promo : row.regular;
+  next.compareAt = onSale ? row.regular : null;
   if (row.availability) next.availability = row.availability;
-  // A counted stock of zero or less means sold out, unless the piece is taken on pre-order.
-  if (row.stock !== null && row.stock <= 0 && next.availability !== "Pre-order") next.availability = "Sold out";
+  if (next.price === null || row.stock === null || row.stock <= 0) next.availability = "Sold out";
   return next;
 }

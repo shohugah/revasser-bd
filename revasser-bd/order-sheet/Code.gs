@@ -37,6 +37,7 @@ function setup() {
   SpreadsheetApp.getActive().setSpreadsheetTimeZone('Asia/Dhaka');
   ordersTab_();
   productsTab_();
+  couponsTab_();
   console.log('ORDERS_SECRET for Vercel: ' + props.getProperty('SECRET'));
 }
 
@@ -51,6 +52,7 @@ function doPost(e) {
   if (!secret || body.secret !== secret) return reply_({ error: 'forbidden' });
   if (body.action === 'create') return reply_(create_(body.order || {}));
   if (body.action === 'track') return reply_(track_(String(body.orderNo || ''), String(body.phone || '')));
+  if (body.action === 'coupon') return reply_(coupon_(String(body.code || ''), Number(body.subtotal) || 0));
   if (body.action === 'catalog') return reply_(catalog_(Array.isArray(body.products) ? body.products : []));
   return reply_({ error: 'unknown action' });
 }
@@ -81,6 +83,8 @@ function create_(o) {
     put('Subtotal', Number(o.subtotal) || 0);
     put('Delivery', Number(o.delivery) || 0);
     put('Total', Number(o.total) || 0);
+    put('Discount', Number(o.discount) || 0);
+    put('Coupon', text_(o.coupon));
     put('Payment', text_(o.payment));
     put('Customer note', text_(o.note));
     sheet.appendRow(row);
@@ -100,6 +104,7 @@ function create_(o) {
         '',
         'Subtotal: Tk ' + o.subtotal,
         'Delivery: Tk ' + o.delivery,
+        Number(o.discount) > 0 ? 'Discount (' + o.coupon + '): - Tk ' + o.discount : '',
         'Total: Tk ' + o.total + ' (' + o.payment + ')',
         '',
         o.name + ', ' + o.phone + (o.email ? ', ' + o.email : ''),
@@ -205,6 +210,7 @@ function catalog_(products) {
       const id = String(cell(r, 'Product Id')).trim();
       if (!id) return;
       out[id] = {
+        name: String(cell(r, 'Product Name')).trim(),
         regular: positive_(cell(r, 'Regular Price')),
         promo: positive_(cell(r, 'Promo Price')),
         stock: count_(cell(r, 'In Stock')),
@@ -216,6 +222,37 @@ function catalog_(products) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/** Coupons tab: Code, Type (percent or taka), Value, Minimum order, Active (Yes/No). Empty tab: no codes work. */
+function couponsTab_() {
+  const book = SpreadsheetApp.getActive();
+  let sheet = book.getSheetByName('Coupons');
+  if (!sheet) {
+    sheet = book.insertSheet('Coupons');
+    sheet.getRange(1, 1, 1, 5).setValues([['Code', 'Type', 'Value', 'Minimum order', 'Active']]).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+    sheet.getRange(2, 2, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['percent', 'taka'], true).setAllowInvalid(false).build());
+    sheet.getRange(2, 5, sheet.getMaxRows() - 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Yes', 'No'], true).setAllowInvalid(false).build());
+  }
+  return sheet;
+}
+
+function coupon_(code, subtotal) {
+  const wanted = code.trim().toUpperCase();
+  const sheet = couponsTab_();
+  const rows = sheet.getLastRow() - 1;
+  if (!wanted || rows < 1) return { error: 'invalid' };
+  const col = columns_(sheet);
+  const row = sheet.getRange(2, 1, rows, sheet.getLastColumn()).getValues()
+    .find((r) => String(r[col['Code']]).trim().toUpperCase() === wanted);
+  if (!row || String(row[col['Active']]).trim().toLowerCase() !== 'yes') return { error: 'invalid' };
+  const value = Number(row[col['Value']]) || 0;
+  const minimum = Number(row[col['Minimum order']]) || 0;
+  if (value <= 0) return { error: 'invalid' };
+  if (subtotal < minimum) return { error: 'minimum', minimum: minimum };
+  const off = String(row[col['Type']]).trim().toLowerCase() === 'percent' ? Math.floor((subtotal * Math.min(value, 100)) / 100) : value;
+  return { ok: true, code: wanted, discount: Math.min(off, subtotal) };
 }
 
 function track_(orderNo, phone) {
@@ -254,6 +291,11 @@ function ordersTab_() {
     sheet.setColumnWidth(HEADERS.indexOf('Items') + 1, 320);
     sheet.setColumnWidth(HEADERS.indexOf('Address') + 1, 240);
   }
+  // Columns added by later versions go on the end, so your own layout is untouched.
+  const have = columns_(sheet);
+  ['Discount', 'Coupon'].forEach((name) => {
+    if (have[name] === undefined) sheet.getRange(1, sheet.getLastColumn() + 1).setValue(name).setFontWeight('bold');
+  });
   return sheet;
 }
 
@@ -268,9 +310,9 @@ function productsTab_() {
     sheet.setFrozenRows(1);
     sheet.setFrozenColumns(2);
     sheet.getRange(1, at('Product Id')).setNote('Matches the piece on the website. Do not change it.');
-    sheet.getRange(1, at('Regular Price')).setNote('Price in taka. Empty means "Price coming soon" and the piece cannot be ordered.');
+    sheet.getRange(1, at('Regular Price')).setNote('Price in taka. Empty or 0 shows Stock Out.');
     sheet.getRange(1, at('Promo Price')).setNote('Sale price in taka. Must be lower than the Regular Price. Leave empty for no sale.');
-    sheet.getRange(1, at('In Stock')).setNote('How many you have. 0 shows Sold out (unless Availability is Pre-order). Each order lowers it. Leave empty if you do not count.');
+    sheet.getRange(1, at('In Stock')).setNote('How many you have. Empty or 0 shows Stock Out. Under 5 shows Low Stock. Each order lowers it.');
     sheet.getRange(1, at('Show on website')).setNote('No hides the piece from the website.');
     sheet.getRange(1, at('Cost Price')).setNote('Private. Never shown on the website.');
     ['Regular Price', 'Promo Price', 'Cost Price'].forEach((name) => below(name).setNumberFormat('#,##0'));
