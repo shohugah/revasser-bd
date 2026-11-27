@@ -39,7 +39,7 @@ export const isSale = (o: Order) => !["Cancelled", "Returned"].includes(statusNa
 const DAY = 86_400_000;
 /** Calendar day in Bangladesh, as 2026-11-27. */
 export const dhakaDay = (time: number) => new Date(time + 6 * 3_600_000).toISOString().slice(0, 10);
-export const orderDay = (o: Order) => (Number.isNaN(Date.parse(o.date)) ? "" : dhakaDay(Date.parse(o.date)));
+export const orderDay = (o: Pick<Order, "date">) => (Number.isNaN(Date.parse(o.date)) ? "" : dhakaDay(Date.parse(o.date)));
 
 /** The last `days` calendar days, oldest first, ending `back` days ago. */
 export function lastDays(days: number, now: number, back = 0) {
