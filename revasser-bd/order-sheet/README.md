@@ -35,3 +35,18 @@ Never paste the secret into a chat, a file in this repository, or Pages CMS.
 ## If you change Code.gs later
 
 Deploy → **Manage deployments** → edit (pencil) → Version: **New version** → Deploy. The URL stays the same.
+
+## Admin dashboard (reports)
+
+The dashboard at `/admin` reads orders and stock. It does not change the sheet.
+
+1. Paste the new `Code.gs`, **Save**, choose **setupAdmin** and press **Run**.
+2. Copy the secret from **Project Settings → Script Properties → ADMIN_SECRET**.
+3. Vercel → Environment Variables → add `ADMIN_SHEET_SECRET` (type **Secret**) for Production and Preview.
+4. **Deploy → Manage deployments →** pencil → Version: **New version** → Deploy.
+
+Never paste either secret into a chat or a file in this repository.
+
+The dashboard reads the sheet each time you open it, so reload to see new orders.
+
+If the dashboard says the secret was refused, copy ADMIN_SECRET again (not SECRET, not the Script ID).

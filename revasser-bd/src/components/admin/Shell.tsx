@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ExternalLink, LogOut, Menu, X } from "lucide-react";
 import { SECTIONS } from "./sections";
+import { Pending } from "./Pending";
 
 export function AdminShell({ email, children }: { email: string; children: React.ReactNode }) {
   const path = usePathname();
@@ -39,6 +40,7 @@ export function AdminShell({ email, children }: { email: string; children: React
             <Link key={slug} href={href} title={name} aria-current={active ? "page" : undefined} className={`flex min-h-11 items-center gap-3 px-4 ${active ? "bg-[#2271b1] text-white" : "hover:bg-[#2c3338] hover:text-[#72aee6]"}`}>
               <Icon className="h-5 w-5 shrink-0" strokeWidth={1.5} />
               <span className="md:sr-only lg:not-sr-only">{name}</span>
+              <Pending />
             </Link>
           );
         })}
