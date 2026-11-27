@@ -6,8 +6,6 @@ import { PageIntro } from "@/components/ui/PageIntro";
 
 type Props = { params: Promise<{ page: string }> };
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   return getContent().pages.map((p) => ({ page: p.slug }));
 }

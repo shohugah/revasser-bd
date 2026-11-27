@@ -9,8 +9,6 @@ import { Empty, Listing, ListingFallback } from "@/components/shop/Listing";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   const { categories, collections } = getContent();
   const slugs = [...categories.map((c) => c.slug), ...collections.map((c) => c.slug), "new-arrivals", "best-sellers"];

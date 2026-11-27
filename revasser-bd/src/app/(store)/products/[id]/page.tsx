@@ -11,8 +11,6 @@ import { ProductRow, RecentlyViewed } from "@/components/shop/ProductRows";
 
 type Props = { params: Promise<{ id: string }> };
 
-export const dynamicParams = false;
-
 // Every Pages CMS piece gets a page; one hidden in the Products sheet shows "not found".
 export function generateStaticParams() {
   return getContent().products.map((p) => ({ id: p.id }));
