@@ -59,3 +59,5 @@ Test copies use their own sheet, set with branch-only Preview settings in Vercel
 The **Orders** screens show customer details to the signed-in admin and change only Status,
 Message for customer and, when you ask, product stock. Two columns are added at the end of the
 Orders tab: **Lines** (what was taken from stock) and **Stock returned**.
+
+Pack and ship an order only after you have confirmed it by phone.
