@@ -2,38 +2,24 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, MessageCircle } from "lucide-react";
-import { toWhatsAppNumber, whatsAppOrderUrl } from "@/lib/whatsapp";
+import { CheckCircle2, Truck } from "lucide-react";
+import { toWhatsAppNumber } from "@/lib/whatsapp";
 import { taka } from "@/lib/format";
 import { useStore, type Details } from "../StoreProvider";
 import { Photo } from "../ui/Photo";
 
-const PAYMENT = { cod: "Cash on Delivery", bkash: "bKash", nagad: "Nagad" };
-type Method = keyof typeof PAYMENT;
-
-function newReference() {
-  const day = new Date().toISOString().slice(2, 10).replace(/-/g, "");
-  const random = crypto.getRandomValues(new Uint32Array(1))[0].toString(36).toUpperCase().padStart(4, "0").slice(-4);
-  return `R${day}-${random}`;
-}
-
 export function CheckoutForm() {
-  const { data, ready, lines, subtotal, hasUnpriced, details, recordOrder, markSent, clearBag } = useStore();
+  const { data, ready, lines, subtotal, hasUnpriced, details, recordOrder } = useStore();
   const c = data.checkout;
-  const methods = (Object.keys(PAYMENT) as Method[]).filter((m) => c[m]);
 
   const [form, setForm] = useState<Details>({ customerName: "", phone: "", email: "", district: c.districts[0] ?? "", area: "", address: "" });
   const [notes, setNotes] = useState("");
-  const [method, setMethod] = useState<Method | "">(methods[0] ?? "");
-  const [trxId, setTrxId] = useState("");
+  const [trap, setTrap] = useState("");
   const [remember, setRemember] = useState(false);
   const [phoneError, setPhoneError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [waUrl, setWaUrl] = useState("");
-  const [sent, setSent] = useState(false);
-  const [placed, setPlaced] = useState("");
-  const reference = useRef("");
+  const [error, setError] = useState("");
+  const [placed, setPlaced] = useState<{ orderNo: string; total: number; phone: string } | null>(null);
   const status = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,17 +31,19 @@ export function CheckoutForm() {
   }, [ready]);
 
   useEffect(() => {
-    if (!waUrl && !sent && !placed) return;
+    if (!placed) return;
     window.scrollTo(0, 0);
     status.current?.focus();
-  }, [waUrl, sent, placed]);
+  }, [placed]);
 
   const inside = form.district === c.insideDistrict;
   const fee = inside ? c.insideFee : c.outsideFee;
   const feeLabel = inside ? c.insideLabel : c.outsideLabel;
+  const blocked = hasUnpriced || lines.some((l) => l.product.availability === "Sold out");
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busy || blocked) return;
     const mobile = toWhatsAppNumber(form.phone);
     if (!mobile) {
       setPhoneError("Enter a Bangladeshi mobile number, like 01712345678.");
@@ -64,32 +52,7 @@ export function CheckoutForm() {
     }
     const phone = `0${mobile.slice(3)}`;
     setPhoneError("");
-    setFailed(false);
-    const transaction = method === "bkash" || method === "nagad" ? trxId : "";
-
-    if (c.whatsapp) {
-      reference.current ||= newReference();
-      const items = lines.map((l) => ({ name: l.product.name, option: l.option, quantity: l.quantity, price: l.product.price }));
-      const url = whatsAppOrderUrl(c.whatsapp, {
-        ...form,
-        phone,
-        notes: notes.trim(),
-        storeName: data.store.name.toUpperCase(),
-        reference: reference.current,
-        items,
-        deliveryFee: fee,
-        deliveryLabel: feeLabel,
-        payment: method ? PAYMENT[method] : "To be confirmed",
-        trxId: transaction,
-      });
-      recordOrder({ reference: reference.current, date: new Date().toISOString(), items, url, sent: false }, remember ? { ...form, phone } : null);
-      setWaUrl(url);
-      // Must run inside the tap, before any await, or phones block it as a pop-up.
-      window.open(url, "_blank", "noopener,noreferrer");
-      // We cannot know whether they pressed Send, so never claim the order was placed or empty the bag.
-      return;
-    }
-
+    setError("");
     setBusy(true);
     try {
       const res = await fetch("/api/orders", {
@@ -98,20 +61,27 @@ export function CheckoutForm() {
         body: JSON.stringify({
           ...form,
           phone,
-          notes: [notes, ...lines.filter((l) => l.option).map((l) => `${l.product.name}: ${l.option}`)].filter(Boolean).join("\n"),
-          paymentMethod: method,
-          trxId: transaction,
-          items: lines.map((l) => ({ id: l.id, quantity: l.quantity })),
+          notes,
+          website: trap,
+          items: lines.map((l) => ({ id: l.id, option: l.option, quantity: l.quantity })),
         }),
       });
-      const body = await res.json();
-      // Only a real order number from the server counts as a placed order.
-      if (res.ok && body.orderNumber) {
-        setPlaced(`#${body.orderNumber}`);
-        clearBag();
-      } else setFailed(true);
+      const body = await res.json().catch(() => ({}));
+      // Only an order number from the server means the order was saved.
+      if (res.ok && typeof body.orderNo === "string") {
+        recordOrder(
+          {
+            reference: body.orderNo,
+            date: new Date().toISOString(),
+            items: lines.map((l) => ({ name: l.product.name, option: l.option, quantity: l.quantity, price: l.product.price })),
+            total: Number(body.total) || 0,
+          },
+          remember ? { ...form, phone } : null,
+        );
+        setPlaced({ orderNo: body.orderNo, total: Number(body.total) || 0, phone });
+      } else setError(body.error || "We could not place your order just now. Please try again in a minute.");
     } catch {
-      setFailed(true);
+      setError("We could not reach the shop. Check your connection and try again. Your bag is still here.");
     } finally {
       setBusy(false);
     }
@@ -119,48 +89,21 @@ export function CheckoutForm() {
 
   if (!ready) return <p role="status" className="py-24 text-muted">Opening your bag…</p>;
 
-  if (placed || sent)
+  if (placed)
     return (
       <div ref={status} tabIndex={-1} className="mx-auto max-w-xl py-16 text-center outline-none">
         <CheckCircle2 className="mx-auto h-12 w-12 text-accent" strokeWidth={1} />
-        <h2 className="display-md mt-6">{placed ? "Order placed." : "Now over to us."}</h2>
-        <p className="mt-4 text-muted">
-          {placed
-            ? `Your order number is ${placed}.`
-            : `Once your message reaches us, we will reply on WhatsApp to confirm availability and the total. Your reference is ${reference.current}. It is not confirmed until we reply.`}
+        <h2 className="display-md mt-6">Thank you. Your order is placed.</h2>
+        <p className="label mt-6">Order number</p>
+        <p className="mt-2 select-all font-serif text-3xl tracking-wide">{placed.orderNo}</p>
+        <p className="mt-6 text-muted">
+          Total {taka(placed.total)}, paid in cash when it arrives. We will call you on {placed.phone} to confirm before we send it.
+          Keep your order number to check its progress.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-2">
-          <Link href="/shop" className="btn-dark">Continue shopping</Link>
-          {sent && <Link href="/account" className="btn-line">View on this device</Link>}
+          <Link href={`/track-order?ref=${encodeURIComponent(placed.orderNo)}`} className="btn-dark">Track this order</Link>
+          <Link href="/shop" className="btn-line">Continue shopping</Link>
         </div>
-      </div>
-    );
-
-  if (waUrl)
-    return (
-      <div ref={status} tabIndex={-1} role="status" className="mx-auto max-w-xl py-16 text-center outline-none">
-        <MessageCircle className="mx-auto h-12 w-12 text-accent" strokeWidth={1} />
-        <h2 className="display-md mt-6">One last step.</h2>
-        <p className="mt-4 text-muted">
-          Press <strong className="font-medium text-ink">Send</strong> in WhatsApp. Your order reaches us only after you send that
-          message, and is confirmed when we reply.
-        </p>
-        <p className="label mt-6">Reference {reference.current}</p>
-        <a href={waUrl} target="_blank" rel="noopener noreferrer" className="btn-dark mt-8 w-full">Open WhatsApp again</a>
-        <button
-          className="btn-line mt-2 w-full"
-          onClick={() => {
-            markSent(reference.current);
-            setSent(true);
-            setWaUrl("");
-          }}
-        >
-          I pressed Send, clear my bag
-        </button>
-        <p className="mt-6 text-sm text-muted">
-          WhatsApp not opening? Message us at <span className="select-all text-ink">+{c.whatsapp}</span>
-        </p>
-        <button onClick={() => setWaUrl("")} className="mt-2 min-h-11 text-sm underline underline-offset-4">Change my details</button>
       </div>
     );
 
@@ -242,27 +185,20 @@ export function CheckoutForm() {
 
         <fieldset>
           <legend className={legend}>Payment</legend>
-          {methods.length === 0 && <p className="text-muted">We will confirm payment with you on WhatsApp.</p>}
-          {methods.map((m) => (
-            <label key={m} className="flex min-h-14 cursor-pointer items-center gap-3 border-b border-ink/10">
-              <input type="radio" name="payment" checked={method === m} onChange={() => setMethod(m)} className="h-[18px] w-[18px] accent-ink" />
-              {PAYMENT[m]}
-            </label>
-          ))}
-          {(method === "bkash" || method === "nagad") && (
-            <div className="mt-5 bg-soft p-5 text-sm">
-              {hasUnpriced ? (
-                <p>Do not send money yet. We will confirm your total and payment details on WhatsApp first.</p>
-              ) : (
-                <>
-                  <p>Send <strong>{taka(subtotal + fee)}</strong> {c.paymentText}</p>
-                  <label htmlFor="trx" className="label mt-5 block text-muted">Transaction ID</label>
-                  <input id="trx" required value={trxId} onChange={(e) => setTrxId(e.target.value)} maxLength={40} className="field" />
-                </>
-              )}
+          <div className="flex items-start gap-4 border border-ink/15 p-5">
+            <Truck className="mt-0.5 h-5 w-5 shrink-0" strokeWidth={1.25} />
+            <div>
+              <p>Cash on Delivery</p>
+              <p className="mt-1 text-sm text-muted">Pay in cash when your order arrives. We call to confirm every order before we send it.</p>
             </div>
-          )}
+          </div>
         </fieldset>
+
+        {/* Hidden from people; bots fill it in and their orders are refused. */}
+        <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+          <label htmlFor="website">Leave this empty</label>
+          <input id="website" name="website" tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} />
+        </div>
 
         <label className="flex cursor-pointer items-start gap-3 text-sm text-muted">
           <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-ink" />
@@ -282,27 +218,39 @@ export function CheckoutForm() {
                 {l.product.name}
                 <span className="block text-muted">{l.option && `${l.option}, `}Qty {l.quantity}</span>
               </span>
-              <span className="shrink-0 text-right text-sm">{l.product.price === null ? "To confirm" : taka(l.product.price * l.quantity)}</span>
+              <span className="shrink-0 text-right text-sm">
+                {l.product.price === null ? (
+                  <span className="text-red-800">{data.labels.priceOnRequest}</span>
+                ) : l.product.availability === "Sold out" ? (
+                  <span className="text-red-800">Sold out</span>
+                ) : (
+                  taka(l.product.price * l.quantity)
+                )}
+              </span>
             </li>
           ))}
         </ul>
         <dl className="space-y-2 border-t border-ink/15 pt-4 text-sm">
-          <div className="flex justify-between"><dt>Subtotal</dt><dd>{hasUnpriced ? "To confirm" : taka(subtotal)}</dd></div>
+          <div className="flex justify-between"><dt>Subtotal</dt><dd>{blocked ? "—" : taka(subtotal)}</dd></div>
           <div className="flex justify-between gap-3"><dt>Delivery ({feeLabel})</dt><dd>{taka(fee)}</dd></div>
           <div className="flex justify-between border-t border-ink/15 pt-3 text-lg">
-            <dt>Total</dt><dd>{hasUnpriced ? "Confirmed on WhatsApp" : taka(subtotal + fee)}</dd>
+            <dt>Total</dt><dd>{blocked ? "—" : taka(subtotal + fee)}</dd>
           </div>
         </dl>
-        {failed && (
-          <div role="alert" className="mt-5 border border-red-800/30 p-4 text-sm text-red-800">
-            <p className="font-medium">We could not confirm your order.</p>
-            <p>Please do not send any payment. If you already sent money, do not send it again and keep your Transaction ID. Your bag has not been cleared.</p>
-          </div>
+        {blocked && (
+          <p role="alert" className="mt-5 border border-red-800/30 p-4 text-sm text-red-800">
+            Some pieces in your bag cannot be ordered yet. Remove the ones marked in red from your bag to continue.
+          </p>
         )}
-        <button form="checkout" type="submit" disabled={busy} className="btn-dark mt-6 w-full">
-          {busy ? "Sending your order…" : c.whatsapp ? c.whatsappButton : c.confirmButton || "Confirm order"}
+        {error && (
+          <p role="alert" className="mt-5 border border-red-800/30 p-4 text-sm text-red-800">
+            {error}
+          </p>
+        )}
+        <button form="checkout" type="submit" disabled={busy || blocked} className="btn-dark mt-6 w-full">
+          {busy ? "Placing your order…" : `${c.confirmButton || "Place order"}${blocked ? "" : ` · ${taka(subtotal + fee)}`}`}
         </button>
-        {c.whatsapp && <p className="mt-3 text-xs text-muted">Opens WhatsApp with your order written out. Nothing is final until we reply.</p>}
+        <p className="mt-3 text-xs text-muted">Cash on Delivery. You pay nothing now.</p>
       </aside>
     </div>
   );

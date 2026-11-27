@@ -1,6 +1,5 @@
 {
   "whatsapp": "01310140434",
-  "whatsappButton": "Order on WhatsApp",
   "bagTitle": "Your bag",
   "emptyBag": "Your bag is waiting for its first piece.",
   "checkoutButton": "Continue to checkout",
@@ -77,9 +76,6 @@
     "Thakurgaon"
   ],
   "cod": true,
-  "bkash": false,
-  "nagad": false,
-  "paymentText": "via Send Money to our merchant/personal number and enter your Transaction ID below for manual verification.",
-  "confirmButton": "Confirm Order",
+  "confirmButton": "Place order",
   "trackTitle": "Track Your Order"
 }

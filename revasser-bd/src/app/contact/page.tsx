@@ -4,7 +4,7 @@ import { whatsAppChatUrl } from "@/lib/whatsapp";
 import { PageIntro } from "@/components/ui/PageIntro";
 import { ContactForm } from "@/components/shop/ContactForm";
 
-export const metadata = pageMeta("Contact", "Contact Revasser on WhatsApp or by email for orders, pre-orders, delivery and exchanges.", "/contact");
+export const metadata = pageMeta("Contact", "Contact Revasser on WhatsApp or by email about your order, pre-orders, delivery and exchanges.", "/contact");
 
 export default function ContactPage() {
   const { checkout, footer } = getContent();

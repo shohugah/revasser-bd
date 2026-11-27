@@ -55,7 +55,7 @@ content:
         type: number
         options:
           min: 0
-        description: Empty shows "Price on WhatsApp"
+        description: Prices, sale prices and stock are set in the Products tab of your Revasser Orders Google Sheet. This is used only when the sheet has no price.
       - name: salePrice
         label: Sale price in taka
         type: number
@@ -67,7 +67,7 @@ content:
         type: select
         options:
           values:
-            - Confirm on WhatsApp
+            - Confirm by phone
             - In stock
             - Pre-order
             - Sold out
@@ -935,15 +935,12 @@ content:
         format: json
         fields:
           - name: whatsapp
-            label: WhatsApp number for orders
+            label: WhatsApp number for questions
             type: string
-            description: Like 017XXXXXXXX. Customers can see it. Empty switches WhatsApp ordering off.
+            description: Like 017XXXXXXXX. Shown on the contact page and footer. Orders are placed on the website, not on WhatsApp.
             pattern:
               regex: ^(((\+?88)?0)?1[3-9][0-9]{8})?$
               message: Type an 11-digit number like 017XXXXXXXX, with no spaces
-          - name: whatsappButton
-            label: WhatsApp button text
-            type: string
           - name: insideFee
             label: Delivery fee inside your city
             type: number
@@ -968,17 +965,12 @@ content:
             type: string
             list: true
           - name: cod
-            label: Cash on delivery
+            label: Take website orders (Cash on Delivery)
             type: boolean
-          - name: bkash
-            label: bKash
-            type: boolean
-          - name: nagad
-            label: Nagad
-            type: boolean
-          - name: paymentText
-            label: Send money instructions
-            type: text
+            description: Switch off to pause website ordering.
+          - name: confirmButton
+            label: Place order button text
+            type: string
           - name: bagTitle
             label: Bag title
             type: string
@@ -990,9 +982,6 @@ content:
             type: string
           - name: title
             label: Checkout title
-            type: string
-          - name: confirmButton
-            label: Confirm button
             type: string
           - name: trackTitle
             label: Track order title

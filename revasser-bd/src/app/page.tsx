@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getContent, getSeo } from "@/lib/content";
+import { getLiveContent, getSeo } from "@/lib/content";
 import { SITE, absolute, pageMeta } from "@/lib/seo";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { SECTIONS } from "@/components/home/Sections";
@@ -11,8 +11,8 @@ export function generateMetadata(): Metadata {
   return { ...pageMeta(seo.title, seo.description, "/"), title: { absolute: seo.title } };
 }
 
-export default function HomePage() {
-  const content = getContent();
+export default async function HomePage() {
+  const content = await getLiveContent();
   const seo = getSeo();
   return (
     <>

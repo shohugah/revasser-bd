@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getContent } from "@/lib/content";
+import { getContent, getLiveContent } from "@/lib/content";
 import { absolute, pageMeta } from "@/lib/seo";
 import { productHref, taka } from "@/lib/format";
 import { whatsAppChatUrl } from "@/lib/whatsapp";
@@ -13,26 +13,27 @@ type Props = { params: Promise<{ id: string }> };
 
 export const dynamicParams = false;
 
+// Every Pages CMS piece gets a page; one hidden in the Products sheet shows "not found".
 export function generateStaticParams() {
   return getContent().products.map((p) => ({ id: p.id }));
 }
 
-const find = (id: string) => {
+const find = async (id: string) => {
   const wanted = decodeURIComponent(id);
-  return getContent().products.find((p) => p.id === wanted);
+  return (await getLiveContent()).products.find((p) => p.id === wanted);
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const p = find((await params).id);
+  const p = await find((await params).id);
   return p ? pageMeta(p.name, p.description || `${p.name} at Revasser.`, productHref(p.id), p.images[0]) : {};
 }
 
 const SCHEMA_AVAILABILITY: Record<string, string> = { "In stock": "InStock", "Pre-order": "PreOrder", "Sold out": "OutOfStock" };
 
 export default async function ProductPage({ params }: Props) {
-  const p = find((await params).id);
+  const p = await find((await params).id);
   if (!p) notFound();
-  const { products, checkout } = getContent();
+  const { products, checkout } = await getLiveContent();
   const related = [
     ...products.filter((x) => x.id !== p.id && x.category === p.category && x.order > p.order),
     ...products.filter((x) => x.id !== p.id && x.category === p.category && x.order <= p.order),
@@ -67,7 +68,7 @@ export default async function ProductPage({ params }: Props) {
           <details className={detail}>
             <summary className={summary}>Delivery {plus}</summary>
             <p className="pb-5 text-sm text-muted">
-              {checkout.insideLabel} {taka(checkout.insideFee)}. {checkout.outsideLabel} {taka(checkout.outsideFee)}. We confirm timing on WhatsApp.{" "}
+              {checkout.insideLabel} {taka(checkout.insideFee)}. {checkout.outsideLabel} {taka(checkout.outsideFee)}. Cash on Delivery. We call to confirm before sending.{" "}
               <Link href="/delivery" className="underline underline-offset-4">Delivery information</Link>
             </p>
           </details>

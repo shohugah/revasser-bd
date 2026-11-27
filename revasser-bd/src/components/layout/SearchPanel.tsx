@@ -15,7 +15,7 @@ const PAGES = [
   ["Pre-order Pakistani fashion", "/pre-order", "pre-order preorder pakistani pakistan dress kurti kurta kaftan fashion"],
   ["Delivery", "/delivery", "delivery shipping courier fee dhaka"],
   ["Exchanges & returns", "/returns", "exchange return refund defect"],
-  ["Payments", "/payments", "payment cash cod bkash nagad"],
+  ["Payments", "/payments", "payment cash cod cash on delivery"],
   ["Help & contact", "/contact", "help contact support email whatsapp phone"],
   ["Our story", "/about", "about story brand"],
 ];

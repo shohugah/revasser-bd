@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { cache } from "react";
 import { toWhatsAppNumber } from "./whatsapp";
+import { applyRow, sheetFor } from "./catalog";
 import type { Availability, Category, Collection, Product, Review, StoreData } from "./types";
 
 // Everything in /content is edited through Pages CMS. The editor can leave any
@@ -118,7 +119,8 @@ export const getContent = cache(() => {
       images: Array.from(new Set(images)),
       price: regular > 0 ? (onSale ? sale : regular) : null,
       compareAt: onSale ? regular : null,
-      availability: (["In stock", "Pre-order", "Sold out", "Confirm on WhatsApp"].includes(x.availability) ? x.availability : "") as Availability,
+      // "Confirm on WhatsApp" is the old name for "Confirm by phone".
+      availability: (x.availability === "Confirm on WhatsApp" ? "Confirm by phone" : ["In stock", "Pre-order", "Sold out", "Confirm by phone"].includes(x.availability) ? x.availability : "") as Availability,
       description: str(x.description),
       details: list(x.details).map(str),
       colours: list(x.colours).map((k) => ({ name: str(k.name), image: image(k.photo || k.photoUrl) })).filter((k) => k.name),
@@ -133,22 +135,17 @@ export const getContent = cache(() => {
   const checkout = {
     ...texts(c, [
       "bagTitle", "emptyBag", "checkoutButton", "title", "insideDistrict", "insideLabel", "outsideLabel",
-      "paymentText", "confirmButton", "trackTitle",
+      "confirmButton", "trackTitle",
     ] as const),
     whatsapp: toWhatsAppNumber(str(c.whatsapp)),
-    whatsappButton: str(c.whatsappButton) || "Order on WhatsApp",
     insideFee: num(c.insideFee),
     outsideFee: num(c.outsideFee),
     districts: list(c.districts).map(str),
     cod: c.cod !== false,
-    bkash: c.bkash === true,
-    nagad: c.nagad === true,
   };
 
   const supportEmail = email(f.supportEmail);
-  const payments =
-    [checkout.cod && "Cash on Delivery", checkout.bkash && "bKash", checkout.nagad && "Nagad"].filter(Boolean).join(", ") ||
-    "Confirmed on WhatsApp";
+  const payments = checkout.cod ? "Cash on Delivery" : "Online ordering is paused";
   // Policy pages quote live settings so they cannot drift from checkout.
   const fill = (s: unknown) =>
     str(s)
@@ -235,8 +232,19 @@ export const getContent = cache(() => {
 
 export type Content = ReturnType<typeof getContent>;
 
-export function getStoreData(): StoreData {
-  const { products, categories, collections, checkout, headings, footer } = getContent();
+/**
+ * Content with the Products sheet applied: prices, sale prices, stock and visibility.
+ * Use this wherever those matter. If the sheet cannot be read, Pages CMS values are used.
+ */
+export const getLiveContent = cache(async () => {
+  const content = getContent();
+  const sheet = await sheetFor(content.products);
+  if (!sheet) return content;
+  return { ...content, products: content.products.flatMap((p) => applyRow(p, sheet[p.id]) ?? []) };
+});
+
+export async function getStoreData(): Promise<StoreData> {
+  const { products, categories, collections, checkout, headings, footer } = await getLiveContent();
   return {
     products,
     categories,
@@ -248,8 +256,8 @@ export function getStoreData(): StoreData {
 }
 
 /** /shop/<slug> can be a category, a collection or one of the two built-in edits. */
-export function getListing(slug: string) {
-  const { products, categories, collections } = getContent();
+export async function getListing(slug: string) {
+  const { products, categories, collections } = await getLiveContent();
   if (slug === "new-arrivals")
     return { name: "New Arrivals", description: "The latest pieces added to the edit.", image: "", products: products.filter((p) => p.isNew), categories: [] as string[] };
   if (slug === "best-sellers")

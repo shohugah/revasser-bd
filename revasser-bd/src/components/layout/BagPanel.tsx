@@ -40,7 +40,7 @@ export function BagPanel() {
                         <p className="shrink-0 text-sm">{product.price === null ? "" : taka(product.price * quantity)}</p>
                       </div>
                       {option && <p className="text-xs text-muted">{option}</p>}
-                      {product.price === null && <p className="text-xs text-muted">{data.labels.priceOnRequest}</p>}
+                      {product.price === null && <p className="text-xs text-red-800">{data.labels.priceOnRequest}. Remove to check out.</p>}
                       <div className="mt-auto flex items-center justify-between pt-2">
                         <div className="flex items-center border border-ink/20">
                           <button className="flex h-10 w-10 items-center justify-center" onClick={() => setQuantity(id, option, quantity - 1)} aria-label={`One fewer ${product.name}`}><Minus className="h-3.5 w-3.5" /></button>
@@ -57,7 +57,7 @@ export function BagPanel() {
             <div className="shrink-0 border-t border-ink/10 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5">
               <div className="flex justify-between">
                 <p>Subtotal</p>
-                <p>{hasUnpriced ? "Confirmed on WhatsApp" : taka(subtotal)}</p>
+                <p>{hasUnpriced ? "—" : taka(subtotal)}</p>
               </div>
               <p className="mt-1 text-xs text-muted">
                 Delivery {taka(c.insideFee)} {c.insideLabel}, {taka(c.outsideFee)} {c.outsideLabel}.

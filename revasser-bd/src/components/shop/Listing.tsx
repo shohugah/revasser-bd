@@ -68,7 +68,7 @@ export function Listing({ products, labels, emptyAction }: Props) {
     { key: "category", name: "Department", pick: (p: Product) => [p.categoryName] },
     { key: "colour", name: "Colour", pick: (p: Product) => p.colours.map((c) => c.name) },
     { key: "size", name: "Size", pick: (p: Product) => p.sizes },
-    { key: "availability", name: "Availability", pick: (p: Product) => [p.availability || "Confirm on WhatsApp"] },
+    { key: "availability", name: "Availability", pick: (p: Product) => [p.availability || "Confirm by phone"] },
     { key: "edit", name: "Edit", pick: (p: Product) => [p.isNew ? "New in" : "", p.bestSeller ? "Best sellers" : "", p.compareAt ? "Reduced" : ""] },
     {
       key: "price",

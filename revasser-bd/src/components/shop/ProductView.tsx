@@ -13,8 +13,8 @@ const AVAILABILITY: Record<string, string> = {
   "In stock": "In stock",
   "Pre-order": "Available on pre-order",
   "Sold out": "Currently sold out",
-  "Confirm on WhatsApp": "Availability confirmed on WhatsApp",
-  "": "Availability confirmed on WhatsApp",
+  "Confirm by phone": "We confirm availability by phone after you order",
+  "": "We confirm availability by phone after you order",
 };
 
 export function ProductView({ product: p, children }: { product: Product; children: React.ReactNode }) {
