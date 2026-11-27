@@ -71,7 +71,8 @@ function create_(o) {
     put('Date', new Date());
     put('Status', 'New');
     put('Name', text_(o.name));
-    put('Mobile', text_(o.phone));
+    // The apostrophe keeps the leading 0: Sheets would otherwise read the number as 1712345678.
+    put('Mobile', "'" + String(o.phone || ''));
     put('Email', text_(o.email));
     put('District', text_(o.district));
     put('Area / thana', text_(o.area));
