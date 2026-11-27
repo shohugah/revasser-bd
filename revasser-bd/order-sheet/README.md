@@ -38,7 +38,7 @@ Deploy → **Manage deployments** → edit (pencil) → Version: **New version**
 
 ## Admin dashboard (reports)
 
-The dashboard at `/admin` reads orders and stock. It does not change the sheet.
+The dashboard at `/admin` reads orders and stock. Only the Products screen changes the sheet.
 
 1. Paste the new `Code.gs`, **Save**, choose **setupAdmin** and press **Run**.
 2. Copy the secret from **Project Settings → Script Properties → ADMIN_SECRET**.
@@ -50,3 +50,8 @@ Never paste either secret into a chat or a file in this repository.
 The dashboard reads the sheet each time you open it, so reload to see new orders.
 
 If the dashboard says the secret was refused, copy ADMIN_SECRET again (not SECRET, not the Script ID).
+
+The **Products** screen changes only Product Name, Regular Price, Promo Price, In Stock, Availability
+and Show on website. Each change is recorded in an **Activity** tab (created on the first change).
+
+Test copies use their own sheet, set with branch-only Preview settings in Vercel. Rebuild after changing them.
