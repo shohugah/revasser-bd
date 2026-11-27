@@ -978,6 +978,10 @@ content:
             label: bKash and Nagad number
             type: string
             description: Customers send money here and type the Transaction ID. Check it before you ship.
+          - name: googleClientId
+            label: Google sign-in Client ID
+            type: string
+            description: Public ID from Google Cloud. Empty hides "Sign in with Google".
           - name: confirmButton
             label: Place order button text
             type: string
