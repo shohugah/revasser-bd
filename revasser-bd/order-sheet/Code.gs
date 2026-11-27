@@ -41,6 +41,19 @@ function setup() {
   console.log('ORDERS_SECRET for Vercel: ' + props.getProperty('SECRET'));
 }
 
+/**
+ * Run once from the editor before using the admin dashboard. It prints a second secret for the
+ * Vercel setting ADMIN_SHEET_SECRET. Reports are refused without it, so the website's ordering
+ * secret alone cannot read your whole order list.
+ */
+function setupAdmin() {
+  const props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('ADMIN_SECRET')) {
+    props.setProperty('ADMIN_SECRET', (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, ''));
+  }
+  console.log('ADMIN_SHEET_SECRET for Vercel: ' + props.getProperty('ADMIN_SECRET'));
+}
+
 function doPost(e) {
   let body;
   try {
@@ -50,6 +63,11 @@ function doPost(e) {
   }
   const secret = PropertiesService.getScriptProperties().getProperty('SECRET');
   if (!secret || body.secret !== secret) return reply_({ error: 'forbidden' });
+  if (body.action === 'report') {
+    const admin = PropertiesService.getScriptProperties().getProperty('ADMIN_SECRET');
+    if (!admin || body.admin !== admin) return reply_({ error: 'admin forbidden' });
+    return reply_(report_());
+  }
   if (body.action === 'create') return reply_(create_(body.order || {}));
   if (body.action === 'track') return reply_(track_(String(body.orderNo || ''), String(body.phone || '')));
   if (body.action === 'history') return reply_(history_(String(body.email || '')));
@@ -292,6 +310,50 @@ function history_(email) {
       .filter(mine).reverse().slice(0, 30)
       .map((r) => ({ orderNo: cell(r, 'Order no'), date: cell(r, 'Date'), status: cell(r, 'Status'), items: cell(r, 'Items'), total: cell(r, 'Total') })),
   };
+}
+
+/**
+ * For the admin dashboard. Only reads: it never creates tabs, adds columns or changes cells.
+ * Names, phone numbers, emails, addresses, notes and cost prices are not sent.
+ */
+function report_() {
+  const book = SpreadsheetApp.getActive();
+  const read = (tab) => {
+    const sheet = book.getSheetByName(tab);
+    if (!sheet || sheet.getLastRow() < 2) return [];
+    const col = columns_(sheet);
+    return sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues()
+      .map((r) => (name) => (col[name] === undefined ? '' : r[col[name]]));
+  };
+  const text = (v) => String(v).trim();
+  const money = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };
+  const date = (v) => {
+    const d = Object.prototype.toString.call(v) === '[object Date]' ? v : new Date(String(v));
+    return isNaN(d.getTime()) ? '' : d.toISOString();
+  };
+  const orders = read(TAB).filter((c) => text(c('Order no'))).slice(-5000).map((c) => ({
+    orderNo: text(c('Order no')),
+    date: date(c('Date')),
+    status: text(c('Status')),
+    items: text(c('Items')),
+    subtotal: money(c('Subtotal')),
+    delivery: money(c('Delivery')),
+    discount: money(c('Discount')),
+    total: money(c('Total')),
+    coupon: text(c('Coupon')),
+    district: text(c('District')),
+    // Only the method, never the transaction ID.
+    payment: text(c('Payment')).split(' · ')[0],
+  }));
+  const products = read(PRODUCTS_TAB).filter((c) => text(c('Product Id'))).map((c) => ({
+    id: text(c('Product Id')),
+    name: text(c('Product Name')),
+    regular: positive_(c('Regular Price')),
+    promo: positive_(c('Promo Price')),
+    stock: count_(c('In Stock')),
+    show: !/^(no|n|false|0|hide|hidden)$/i.test(text(c('Show on website'))),
+  }));
+  return { ok: true, orders: orders, products: products };
 }
 
 function ordersTab_() {
