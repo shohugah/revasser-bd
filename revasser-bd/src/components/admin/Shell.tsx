@@ -19,8 +19,8 @@ export function AdminShell({ email, children }: { email: string; children: React
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f0f1] text-[#1d2327]">
-      <header className="fixed inset-x-0 top-0 z-30 flex h-12 items-center gap-3 bg-[#1d2327] px-2 text-sm text-white sm:px-4">
+    <div className="min-h-screen bg-[#f0f0f1] text-[#1d2327] print:bg-white">
+      <header className="print:hidden fixed inset-x-0 top-0 z-30 flex h-12 items-center gap-3 bg-[#1d2327] px-2 text-sm text-white sm:px-4">
         <button className="flex h-10 w-10 items-center justify-center md:hidden" onClick={() => setOpen(!open)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open}>
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -32,10 +32,10 @@ export function AdminShell({ email, children }: { email: string; children: React
         <button onClick={signOut} className="ml-auto flex min-h-10 items-center gap-1.5 px-2 hover:text-[#72aee6] sm:ml-0"><LogOut className="h-4 w-4" />Sign out</button>
       </header>
       {open && <button aria-hidden="true" tabIndex={-1} className="fixed inset-0 top-12 z-10 bg-black/40 md:hidden" onClick={() => setOpen(false)} />}
-      <nav aria-label="Admin" className={`fixed bottom-0 left-0 top-12 z-20 w-56 overflow-y-auto bg-[#1d2327] py-2 text-sm text-[#f0f0f1] md:visible md:w-14 md:translate-x-0 lg:w-56 ${open ? "" : "invisible -translate-x-full"}`}>
+      <nav aria-label="Admin" className={`print:hidden fixed bottom-0 left-0 top-12 z-20 w-56 overflow-y-auto bg-[#1d2327] py-2 text-sm text-[#f0f0f1] md:visible md:w-14 md:translate-x-0 lg:w-56 ${open ? "" : "invisible -translate-x-full"}`}>
         {SECTIONS.map(({ slug, name, icon: Icon }) => {
           const href = slug ? `/admin/${slug}` : "/admin";
-          const active = path === href;
+          const active = path === href || (!!slug && path.startsWith(`${href}/`));
           return (
             <Link key={slug} href={href} title={name} aria-current={active ? "page" : undefined} className={`flex min-h-11 items-center gap-3 px-4 ${active ? "bg-[#2271b1] text-white" : "hover:bg-[#2c3338] hover:text-[#72aee6]"}`}>
               <Icon className="h-5 w-5 shrink-0" strokeWidth={1.5} />
@@ -45,7 +45,7 @@ export function AdminShell({ email, children }: { email: string; children: React
           );
         })}
       </nav>
-      <main className="px-4 pb-10 pt-16 md:ml-14 lg:ml-56 lg:px-8">{children}</main>
+      <main className="px-4 pb-10 pt-16 md:ml-14 lg:ml-56 lg:px-8 print:m-0 print:p-0">{children}</main>
     </div>
   );
 }
