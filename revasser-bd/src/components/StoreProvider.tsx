@@ -16,11 +16,12 @@ export interface SavedOrder {
   /** Total the server charged, delivery included. */
   total: number;
 }
-export interface Details { customerName: string; phone: string; email: string; district: string; area: string; address: string }
-interface Saved { bag: BagLine[]; wishlist: string[]; recent: string[]; orders: SavedOrder[]; details: Details | null }
+export interface Details { customerName: string; phone: string; email: string; area: string; address: string; location: "inside" | "outside" }
+export interface SavedAddress { tag: string; details: Details }
+interface Saved { bag: BagLine[]; wishlist: string[]; recent: string[]; orders: SavedOrder[]; addresses: SavedAddress[] }
 type PanelName = "" | "menu" | "search" | "bag" | "quick";
 
-const EMPTY: Saved = { bag: [], wishlist: [], recent: [], orders: [], details: null };
+const EMPTY: Saved = { bag: [], wishlist: [], recent: [], orders: [], addresses: [] };
 
 function load(): Saved {
   try {
@@ -32,7 +33,10 @@ function load(): Saved {
       recent: array(v.recent).filter((x) => typeof x === "string"),
       // Only orders the website saved. Older WhatsApp drafts had no total and are dropped.
       orders: array(v.orders).filter((o) => o && typeof o.reference === "string" && Array.isArray(o.items) && typeof o.total === "number"),
-      details: v.details && typeof v.details === "object" ? v.details : null,
+      // Details saved before address tags existed become the "Home" address.
+      addresses: (Array.isArray(v.addresses) ? v.addresses : v.details ? [{ tag: "Home", details: v.details }] : []).filter(
+        (a: SavedAddress) => a && typeof a.tag === "string" && a.details && typeof a.details.address === "string",
+      ),
     };
   } catch {
     return EMPTY; // Storage can be blocked or hold something unreadable.
@@ -115,8 +119,13 @@ function useStoreValue(data: StoreData) {
     setSaved((s) => (s.recent[0] === id ? s : { ...s, recent: [id, ...s.recent.filter((x) => x !== id)].slice(0, 12) }));
   }, []);
 
-  const recordOrder = (order: SavedOrder, details: Details | null) =>
-    setSaved((s) => ({ ...s, bag: [], details, orders: [order, ...s.orders.filter((o) => o.reference !== order.reference)].slice(0, 30) }));
+  const recordOrder = (order: SavedOrder, address: SavedAddress | null) =>
+    setSaved((s) => ({
+      ...s,
+      bag: [],
+      addresses: address ? [address, ...s.addresses.filter((a) => a.tag !== address.tag)].slice(0, 6) : s.addresses,
+      orders: [order, ...s.orders.filter((o) => o.reference !== order.reference)].slice(0, 30),
+    }));
 
   return {
     data,
@@ -128,7 +137,7 @@ function useStoreValue(data: StoreData) {
     wishlist: saved.wishlist.flatMap((id) => byId.get(id) ?? []),
     recent: saved.recent.flatMap((id) => byId.get(id) ?? []),
     orders: saved.orders,
-    details: saved.details,
+    addresses: saved.addresses,
     isWished: (id: string) => saved.wishlist.includes(id),
     add,
     setQuantity,
