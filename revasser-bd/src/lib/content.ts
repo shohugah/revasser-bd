@@ -142,10 +142,16 @@ export const getContent = cache(() => {
     outsideFee: num(c.outsideFee),
     districts: list(c.districts).map(str),
     cod: c.cod !== false,
+    bkash: c.bkash === true,
+    nagad: c.nagad === true,
+    // The number customers Send Money to. bKash and Nagad stay hidden without it.
+    payNumber: toWhatsAppNumber(str(c.payNumber)).replace(/^880/, "0"),
   };
 
   const supportEmail = email(f.supportEmail);
-  const payments = checkout.cod ? "Cash on Delivery" : "Online ordering is paused";
+  const payments = checkout.cod
+    ? ["Cash on Delivery", checkout.payNumber && checkout.bkash && "bKash", checkout.payNumber && checkout.nagad && "Nagad"].filter(Boolean).join(", ")
+    : "Online ordering is paused";
   // Policy pages quote live settings so they cannot drift from checkout.
   const fill = (s: unknown) =>
     str(s)
