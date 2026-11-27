@@ -37,7 +37,7 @@ export interface StoreData {
   checkout: {
     whatsapp: string; confirmButton: string; title: string; bagTitle: string; emptyBag: string;
     checkoutButton: string; insideDistrict: string; insideLabel: string; outsideLabel: string;
-    insideFee: number; outsideFee: number; districts: string[]; cod: boolean; bkash: boolean; nagad: boolean; payNumber: string;
+    insideFee: number; outsideFee: number; districts: string[]; cod: boolean; bkash: boolean; nagad: boolean; payNumber: string; googleClientId: string;
   };
   store: { name: string; email: string };
 }
