@@ -20,7 +20,7 @@ export function BagPanel() {
 
         {lines.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-7 px-8 text-center">
-            <img src="/brand/logo/monogram-gold.svg" alt="" className="h-20 w-20" />
+            <img src="/brand/logo/mark-gold.png" alt="" className="h-20 w-20" />
             <p className="font-serif text-2xl">{c.emptyBag}</p>
             <Link href="/shop" className="btn-dark">Explore the edit</Link>
           </div>
