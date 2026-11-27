@@ -123,6 +123,11 @@ export function Header({ nav, announcements, logoImage, badge, searchPlaceholder
             <button className="icon-btn hidden sm:inline-flex lg:hidden" onClick={() => store.open("search")} aria-label="Search">
               <Search className="h-5 w-5" strokeWidth={1.25} />
             </button>
+            {store.data.checkout.googleClientId && (
+              <button className="mr-2 hidden h-11 whitespace-nowrap text-xs uppercase tracking-[0.14em] hover:opacity-60 lg:block" onClick={() => store.open("signin")} aria-haspopup="dialog">
+                {store.user ? `Hi, ${store.user.name.split(" ")[0] || "there"}` : "Login / Register"}
+              </button>
+            )}
             <Link href="/account" className="icon-btn hidden lg:inline-flex" aria-label="My Revasser">
               <User className="h-5 w-5" strokeWidth={1.25} />
             </Link>

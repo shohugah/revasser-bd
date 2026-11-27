@@ -8,6 +8,7 @@ import { MobileMenu } from "@/components/layout/MobileMenu";
 import { SearchPanel } from "@/components/layout/SearchPanel";
 import { BagPanel } from "@/components/layout/BagPanel";
 import { QuickView } from "@/components/layout/QuickView";
+import { SignInPanel } from "@/components/layout/SignInPanel";
 import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
 
@@ -56,6 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SearchPanel placeholder={header.searchPlaceholder || "Search"} />
           <BagPanel />
           <QuickView />
+          <SignInPanel />
         </StoreProvider>
       </body>
     </html>

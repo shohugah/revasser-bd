@@ -52,6 +52,7 @@ function doPost(e) {
   if (!secret || body.secret !== secret) return reply_({ error: 'forbidden' });
   if (body.action === 'create') return reply_(create_(body.order || {}));
   if (body.action === 'track') return reply_(track_(String(body.orderNo || ''), String(body.phone || '')));
+  if (body.action === 'history') return reply_(history_(String(body.email || '')));
   if (body.action === 'coupon') return reply_(coupon_(String(body.code || ''), Number(body.subtotal) || 0));
   if (body.action === 'catalog') return reply_(catalog_(Array.isArray(body.products) ? body.products : []));
   return reply_({ error: 'unknown action' });
@@ -85,6 +86,7 @@ function create_(o) {
     put('Total', Number(o.total) || 0);
     put('Discount', Number(o.discount) || 0);
     put('Coupon', text_(o.coupon));
+    put('Account', text_(o.account));
     put('Payment', text_(o.payment));
     put('Customer note', text_(o.note));
     sheet.appendRow(row);
@@ -276,6 +278,22 @@ function track_(orderNo, phone) {
   };
 }
 
+/** Orders placed while signed in with this email, or typed with it at checkout. Newest first. */
+function history_(email) {
+  const wanted = email.trim().toLowerCase();
+  const sheet = ordersTab_();
+  const rows = sheet.getLastRow() - 1;
+  if (!wanted || rows < 1) return { orders: [] };
+  const col = columns_(sheet);
+  const cell = (r, name) => (col[name] === undefined ? '' : String(r[col[name]]));
+  const mine = (r) => [cell(r, 'Account'), cell(r, 'Email')].some((v) => v.trim().toLowerCase() === wanted);
+  return {
+    orders: sheet.getRange(2, 1, rows, sheet.getLastColumn()).getDisplayValues()
+      .filter(mine).reverse().slice(0, 30)
+      .map((r) => ({ orderNo: cell(r, 'Order no'), date: cell(r, 'Date'), status: cell(r, 'Status'), items: cell(r, 'Items'), total: cell(r, 'Total') })),
+  };
+}
+
 function ordersTab_() {
   const book = SpreadsheetApp.getActive();
   let sheet = book.getSheetByName(TAB);
@@ -293,7 +311,7 @@ function ordersTab_() {
   }
   // Columns added by later versions go on the end, so your own layout is untouched.
   const have = columns_(sheet);
-  ['Discount', 'Coupon'].forEach((name) => {
+  ['Discount', 'Coupon', 'Account'].forEach((name) => {
     if (have[name] === undefined) sheet.getRange(1, sheet.getLastColumn() + 1).setValue(name).setFontWeight('bold');
   });
   return sheet;

@@ -7,6 +7,7 @@ import { toWhatsAppNumber } from "@/lib/whatsapp";
 import { taka } from "@/lib/format";
 import { useStore, type Details } from "../StoreProvider";
 import { Photo } from "../ui/Photo";
+import { GoogleSignIn } from "./GoogleSignIn";
 
 type Method = "cod" | "bkash" | "nagad";
 const EMPTY: Details = { customerName: "", phone: "", email: "", area: "", address: "", location: "inside" };
@@ -17,7 +18,7 @@ const heading = "font-serif text-xl";
 const choice = "flex min-h-14 cursor-pointer items-center gap-3 rounded-md border border-ink/20 bg-white px-4 py-3 has-[:checked]:border-ink has-[:checked]:bg-soft";
 
 export function CheckoutForm() {
-  const { data, ready, lines, subtotal, addresses, recordOrder, setQuantity, open } = useStore();
+  const { data, ready, lines, subtotal, addresses, recordOrder, setQuantity, open, user } = useStore();
   const c = data.checkout;
 
   const [form, setForm] = useState<Details>(EMPTY);
@@ -49,6 +50,11 @@ export function CheckoutForm() {
     // Restore the latest saved address once, when storage has loaded.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
+
+  // Fill in the name and email from Google, without overwriting anything already typed.
+  useEffect(() => {
+    if (user) setForm((f) => ({ ...f, customerName: f.customerName || user.name, email: f.email || user.email }));
+  }, [user, tag]);
 
   useEffect(() => {
     if (!placed) return;
@@ -171,6 +177,11 @@ export function CheckoutForm() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] lg:gap-8">
       <form id="checkout" onSubmit={submit} className={`${card} min-w-0 self-start`}>
+        {c.googleClientId && (
+          <div className="mb-6 border-b border-ink/10 pb-5">
+            <GoogleSignIn hint="Optional: sign in to fill your details and keep your order history." />
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <h2 className={`${heading} mr-3`}>Address</h2>
           {tags.map((t) => (

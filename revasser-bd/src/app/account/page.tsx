@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/seo";
 import { PageIntro } from "@/components/ui/PageIntro";
 import { AccountView } from "@/components/shop/AccountView";
 
-export const metadata = { ...pageMeta("My Revasser", "Your orders and saved pieces on this device.", "/account"), robots: { index: false, follow: true } };
+export const metadata = { ...pageMeta("My Revasser", "Your orders and saved pieces.", "/account"), robots: { index: false, follow: true } };
 
 export default function Page() {
   return (

@@ -144,6 +144,8 @@ export const getContent = cache(() => {
     cod: c.cod !== false,
     bkash: c.bkash === true,
     nagad: c.nagad === true,
+    // Public identifier for "Sign in with Google". Empty hides the button.
+    googleClientId: /^[0-9a-z-]+\.apps\.googleusercontent\.com$/.test(str(c.googleClientId).trim()) ? str(c.googleClientId).trim() : "",
     // The number customers Send Money to. bKash and Nagad stay hidden without it.
     payNumber: toWhatsAppNumber(str(c.payNumber)).replace(/^880/, "0"),
   };

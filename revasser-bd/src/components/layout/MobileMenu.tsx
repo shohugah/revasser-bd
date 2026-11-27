@@ -9,7 +9,7 @@ import { Panel } from "../ui/Panel";
 import { Photo } from "../ui/Photo";
 
 export function MobileMenu({ nav, showTrack, trackLabel }: { nav: NavItem[]; showTrack: boolean; trackLabel: string }) {
-  const { panel, close, data } = useStore();
+  const { panel, close, data, user, open: openPanel } = useStore();
   const open = panel === "menu";
   const small = [
     ["Pre-order fashion", "/pre-order"],
@@ -46,6 +46,11 @@ export function MobileMenu({ nav, showTrack, trackLabel }: { nav: NavItem[]; sho
             </li>
           ))}
         </ul>
+        {data.checkout.googleClientId && (
+          <div className="mt-7 px-5">
+            <button className="btn-dark w-full" onClick={() => openPanel("signin")}>{user ? "My account" : "Login / Register"}</button>
+          </div>
+        )}
         <ul className="mt-7 grid grid-cols-2 gap-x-4 border-t border-ink/10 px-5 pb-8 pt-4">
           {small.map(([label, href]) => (
             <li key={href}><Link href={href} className="flex min-h-11 items-center text-sm">{label}</Link></li>

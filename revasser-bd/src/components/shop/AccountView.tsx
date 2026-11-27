@@ -3,17 +3,25 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useStore } from "../StoreProvider";
+import { GoogleSignIn } from "./GoogleSignIn";
+import { OrderHistory } from "./OrderHistory";
 
 export function AccountView() {
-  const { ready, orders, addresses, forget, wishlist, count, open } = useStore();
+  const { data, ready, orders, addresses, forget, wishlist, count, open, user } = useStore();
   const [confirming, setConfirming] = useState(false);
   if (!ready) return <p role="status" className="py-20 text-muted">Loading…</p>;
   return (
     <div className="grid gap-14 lg:grid-cols-[1.5fr_1fr] lg:gap-24">
       <section>
         <h2 className="display-md">Order history</h2>
-        <p className="mt-3 text-sm text-muted">Orders placed from this browser. We call to confirm each one before it is sent.</p>
-        {orders.length === 0 ? (
+        {data.checkout.googleClientId && (
+          <div className="mt-5">
+            <GoogleSignIn hint="Sign in with the Gmail you order with to see your past purchases on any device." />
+          </div>
+        )}
+        <OrderHistory />
+        {!user && <p className="mt-6 text-sm text-muted">Orders placed from this browser. We call to confirm each one before it is sent.</p>}
+        {user ? null : orders.length === 0 ? (
           <div className="mt-8 border-t border-ink/10 pt-8">
             <p>No orders placed from this device yet.</p>
             <Link href="/shop" className="btn-dark mt-6">Start with the edit</Link>
@@ -28,7 +36,7 @@ export function AccountView() {
                 </p>
                 <p className="mt-2 text-sm text-muted">{o.items.map((i) => `${i.quantity} × ${i.name}${i.option ? ` (${i.option})` : ""}`).join(", ")}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-5 text-sm">
-                  <span>Total ৳{o.total.toLocaleString("en-US")}, Cash on Delivery</span>
+                  <span>Total ৳{o.total.toLocaleString("en-US")}</span>
                   <Link href={`/track-order?ref=${encodeURIComponent(o.reference)}`} className="flex min-h-11 items-center underline underline-offset-4">Track this order</Link>
                 </div>
               </li>
@@ -56,7 +64,7 @@ export function AccountView() {
           )}
         </section>
         <section className="border-t border-ink/10 pt-6">
-          <p className="text-sm text-muted">There is no password and no online account. Everything on this page stays in this browser and does not follow you to another device.</p>
+          <p className="text-sm text-muted">There is no password. Saved addresses and your wishlist stay in this browser; signing in with Google shows your orders on any device.</p>
           {confirming ? (
             <div className="mt-4 flex gap-2">
               <button className="btn-dark" onClick={() => { forget(); setConfirming(false); }}>Clear everything</button>

@@ -19,7 +19,7 @@ export interface SavedOrder {
 export interface Details { customerName: string; phone: string; email: string; area: string; address: string; location: "inside" | "outside" }
 export interface SavedAddress { tag: string; details: Details }
 interface Saved { bag: BagLine[]; wishlist: string[]; recent: string[]; orders: SavedOrder[]; addresses: SavedAddress[] }
-type PanelName = "" | "menu" | "search" | "bag" | "quick";
+type PanelName = "" | "menu" | "search" | "bag" | "quick" | "signin";
 
 const EMPTY: Saved = { bag: [], wishlist: [], recent: [], orders: [], addresses: [] };
 
@@ -49,6 +49,8 @@ function useStoreValue(data: StoreData) {
   const [panel, setPanel] = useState<PanelName>("");
   const [quickId, setQuickId] = useState("");
   const [toast, setToast] = useState("");
+  // undefined while we are still asking; null when signed out.
+  const [user, setUser] = useState<{ email: string; name: string } | null | undefined>(undefined);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -70,6 +72,14 @@ function useStoreValue(data: StoreData) {
   }, [saved, ready]);
 
   useEffect(() => setPanel(""), [pathname]);
+
+  useEffect(() => {
+    if (!data.checkout.googleClientId) return;
+    fetch("/api/auth")
+      .then((r) => r.json())
+      .then((r) => setUser(r.user ?? null))
+      .catch(() => setUser(null));
+  }, [data.checkout.googleClientId]);
 
   useEffect(() => {
     if (!toast) return;
@@ -158,6 +168,8 @@ function useStoreValue(data: StoreData) {
       setPanel("quick");
     },
     toast,
+    user,
+    setUser,
   };
 }
 
